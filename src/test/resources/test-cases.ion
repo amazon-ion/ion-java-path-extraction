@@ -1,0 +1,209 @@
+// Field only ----------------------------------------------------------------------------
+
+// matches
+{ searchPath: (foo),     data: {foo: 1},         expected: [1] }
+{ searchPath: (foo bar), data: {foo: {bar : 2}}, expected: [2] }
+
+// escaped wildcard
+{ searchPath: ('$ion_extractor_field'::*), data: {'*': 1, foo: 2}, expected: [1]}
+
+// matches one sibling
+{ searchPath: (foo baz), data: {foo: {bar : 2, baz: 3}}, expected: [3] }
+
+// multiple matches
+{ searchPath: (foo bar), data: {foo: {bar : 2, bar: 3}}, expected: [2, 3] }
+
+// no match
+{ searchPath: (foo),     data: {baz: 10},        expected: [] }
+{ searchPath: (foo baz), data: {foo: {bar : 2}}, expected: [] }
+
+// stepOut
+{ searchPath: (foo bar), data: {foo: {bar : 2, bar: 3}}, expected: [2], stepOutN: 1 }
+{
+  searchPath: (foo bar baz),
+  data: { foo: { bar: {baz: 1}, bar: {baz: 2} } },
+  expected: [1],
+  stepOutN: 2
+}
+
+// empty containers
+{ searchPath: (foo), data: {}, expected: [] }
+{ searchPath: (foo), data: (), expected: [] }
+{ searchPath: (foo), data: [], expected: [] }
+
+// not containers
+{ searchPath: (foo), data: null,     expected: [] }
+{ searchPath: (foo), data: true,     expected: [] }
+{ searchPath: (foo), data: 1,        expected: [] }
+{ searchPath: (foo), data: 1e0,      expected: [] }
+{ searchPath: (foo), data: 1.0,      expected: [] }
+{ searchPath: (foo), data: 2018T,    expected: [] }
+{ searchPath: (foo), data: "",       expected: [] }
+{ searchPath: (foo), data: '',       expected: [] }
+{ searchPath: (foo), data: {{ }},    expected: [] }
+{ searchPath: (foo), data: {{ "" }}, expected: [] }
+
+
+
+// Ordinal only --------------------------------------------------------------------------
+
+// matches
+{ searchPath: (0), data: [1],            expected: [1] }
+{ searchPath: (0), data: (1),            expected: [1] }
+{ searchPath: (0), data: {f: 1},         expected: [1] }
+{ searchPath: (1), data: [1, 2],         expected: [2] }
+{ searchPath: (1), data: (1 3),          expected: [3] }
+{ searchPath: (1), data: {f1: 1, f2: 2}, expected: [2] }
+{ searchPath: (0), data: [1, 2],         expected: [1] }
+{ searchPath: (0), data: (1 3),          expected: [1] }
+{ searchPath: (0), data: {f1: 1, f2: 2}, expected: [1] }
+
+// out of bounds
+{ searchPath: (1), data: [1],          expected: [] }
+{ searchPath: (1), data: (1),          expected: [] }
+{ searchPath: (1), data: {foo: 1},     expected: [] }
+
+// empty containers
+{ searchPath: (0), data: [], expected: [] }
+{ searchPath: (0), data: (), expected: [] }
+{ searchPath: (0), data: {}, expected: [] }
+
+// not containers
+{ searchPath: (0), data: null,     expected: [] }
+{ searchPath: (0), data: true,     expected: [] }
+{ searchPath: (0), data: 1,        expected: [] }
+{ searchPath: (0), data: 1e0,      expected: [] }
+{ searchPath: (0), data: 1.0,      expected: [] }
+{ searchPath: (0), data: 2018T,    expected: [] }
+{ searchPath: (0), data: "",       expected: [] }
+{ searchPath: (0), data: '',       expected: [] }
+{ searchPath: (0), data: {{ }},    expected: [] }
+{ searchPath: (0), data: {{ "" }}, expected: [] }
+
+
+// Wildcard only -------------------------------------------------------------------------
+
+// matches
+{ searchPath: (*),   data: [1],                  expected: [1] }
+{ searchPath: (*),   data: (1),                  expected: [1] }
+{ searchPath: (*),   data: {f: 1},               expected: [1] }
+{ searchPath: (*),   data: [1, 2],               expected: [1, 2] }
+{ searchPath: (*),   data: (1 3),                expected: [1, 3] }
+{ searchPath: (*),   data: {f1: 1, f2: 2},       expected: [1, 2] }
+{ searchPath: (* *), data: [1, [2]],             expected: [2] }
+{ searchPath: (* *), data: (1 (3)),              expected: [3] }
+{ searchPath: (* *), data: {f1: 1, f2: {f3: 2}}, expected: [2] }
+
+// insufficient depth
+{ searchPath: (* *), data: [1],            expected: [] }
+{ searchPath: (* *), data: (1),            expected: [] }
+{ searchPath: (* *), data: {f1: 1},        expected: [] }
+{ searchPath: (* *), data: [1, 2],         expected: [] }
+{ searchPath: (* *), data: (1 2),          expected: [] }
+{ searchPath: (* *), data: {f1: 1, f2: 2}, expected: [] }
+
+// step out
+{ searchPath: (* *), data: [[1], [2]], expected: [1], stepOutN: 2 }
+
+// empty containers
+{ searchPath: (*), data: [], expected: [] }
+{ searchPath: (*), data: (), expected: [] }
+{ searchPath: (*), data: {}, expected: [] }
+
+// not containers
+{ searchPath: (*), data: null,     expected: [] }
+{ searchPath: (*), data: true,     expected: [] }
+{ searchPath: (*), data: 1,        expected: [] }
+{ searchPath: (*), data: 1e0,      expected: [] }
+{ searchPath: (*), data: 1.0,      expected: [] }
+{ searchPath: (*), data: 2018T,    expected: [] }
+{ searchPath: (*), data: "",       expected: [] }
+{ searchPath: (*), data: '',       expected: [] }
+{ searchPath: (*), data: {{ }},    expected: [] }
+{ searchPath: (*), data: {{ "" }}, expected: [] }
+
+
+// Empty search path ---------------------------------------------------------------------
+
+// containers
+{ searchPath: (), data: [1], expected: [[1]] }
+{ searchPath: (), data: (1), expected: [(1)] }
+{ searchPath: (), data: {foo: 1}, expected: [{foo: 1}] }
+
+// empty containers
+{ searchPath: (), data: [], expected: [[]] }
+{ searchPath: (), data: (), expected: [()] }
+{ searchPath: (), data: {}, expected: [{}] }
+
+// not containers
+{ searchPath: (), data: null,     expected: [null] }
+{ searchPath: (), data: true,     expected: [true] }
+{ searchPath: (), data: 1,        expected: [1] }
+{ searchPath: (), data: 1e0,      expected: [1e0] }
+{ searchPath: (), data: 1.0,      expected: [1.0] }
+{ searchPath: (), data: 2018T,    expected: [2018T] }
+{ searchPath: (), data: "",       expected: [""] }
+{ searchPath: (), data: '',       expected: [''] }
+{ searchPath: (), data: {{ }},    expected: [{{ }}] }
+{ searchPath: (), data: {{ "" }}, expected: [{{ "" }}] }
+
+
+// Mixed path components -----------------------------------------------------------------
+{
+  searchPath: (foo 1),
+  data: { foo: [0, 1], foo: (0 2), foo: {a: 1, b: 3}, foo: 1, bar: [0, 1] },
+  expected: [1, 2, 3]
+}
+{
+  searchPath: (foo *),
+  data: { foo: [1], foo: (2), foo: {bar: 3}, foo: 1, bar: (9) },
+  expected: [1, 2, 3]
+}
+{
+  searchPath: (foo * bar),
+  data: { foo: [ {bar: 1} ], foo: { baz: {bar: 2} } },
+  expected: [1, 2]
+}
+{
+  searchPath: (foo * 0),
+  data: { foo: [1, [2]], foo: {bar: (3)} },
+  expected: [2, 3]
+}
+{
+  searchPath: (foo bar 2),
+  data: {abc: def, foo: {bar:[1, 2, 3]}},
+  expected: [3]
+}
+{
+  searchPath: (foo bar *),
+  data: {abc: def, foo: {bar:[1, 2, 3]}},
+  expected: [1, 2, 3]
+}
+{
+  searchPath: (foo bar * baz),
+  data: {abc: def, foo: {bar:[{baz:1}, {zar:2}, {baz:3}]}},
+  expected: [1, 3]
+}
+
+// stepOut
+{
+  searchPath: (foo * 0),
+  data: {
+    foo: { first: [1], second: [2] },
+    foo: { first: [10], second: [20] }
+  },
+  expected: [1,10],
+  stepOutN: 2
+}
+
+// Multiple search paths -----------------------------------------------------------------
+// all match
+{ searchPath: [(0), (foo)], data: {bar: 1, foo: 2}, expected: [1, 2] }
+
+// none match
+{ searchPath: [(1), (foo)], data: [0], expected: [] }
+
+// multiple matchers match the same value
+{ searchPath: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
+
+{ searchPath: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
