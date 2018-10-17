@@ -52,6 +52,37 @@ Each time the `PathExtractor` encounters a value that matches a registered searc
 callback passing the reader positioned at the current value. See `PathExtractorBuilder#register` methods for more 
 information on the callback contract.
 
+### Examples: 
+
+```java
+// Capture all matched values into a List
+final IonSystem ion = IonSystemBuilder.standard().build();
+
+final List<IonValue> list = new ArrayList<>();
+final Function<IonReader, Integer> callback = (reader) -> {
+    IonValue ionValue = ion.newValue(reader);
+    list.add(ionValue);
+
+    return 0;
+};
+
+final PathExtractor pathExtractor = PathExtractorBuilder.standard()
+    .register("(foo)", callback)
+    .register("(bar)", callback)
+    .register("(baz 1)", callback)
+    .build();
+
+IonReader ionReader = ion.newReader("{foo: 1}"
+    + "{bar: 2}"
+    + "{baz: [10,20,30,40]}"
+    + "{other: 99}"
+);
+
+pathExtractor.match(ionReader);
+
+// list will contain 1, 2 and 20
+```
+
 ## Ion Developer information
 See the developer guide on: http://amzn.github.io/ion-docs/guides/path-extractor-guide.html
 
