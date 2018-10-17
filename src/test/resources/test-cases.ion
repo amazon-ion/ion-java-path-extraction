@@ -94,6 +94,9 @@
 { searchPath: (* *), data: (1 (3)),              expected: [3] }
 { searchPath: (* *), data: {f1: 1, f2: {f3: 2}}, expected: [2] }
 
+// escape annotation is only valid as the first annotation
+{ searchPath: (foo::'$ion_extractor_field'::*), data: [1, 2], expected: [1, 2]}
+
 // insufficient depth
 { searchPath: (* *), data: [1],            expected: [] }
 { searchPath: (* *), data: (1),            expected: [] }

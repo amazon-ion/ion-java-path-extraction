@@ -17,7 +17,6 @@ import static software.amazon.com.ionpathextraction.utils.Preconditions.checkArg
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import software.amazon.com.ionpathextraction.exceptions.PathExtractionException;
 import software.amazon.com.ionpathextraction.pathcomponents.Index;
@@ -25,24 +24,25 @@ import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.com.ionpathextraction.pathcomponents.Text;
 import software.amazon.com.ionpathextraction.pathcomponents.Wildcard;
 import software.amazon.ion.IonReader;
-import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonType;
 import software.amazon.ion.IonWriter;
-import software.amazon.ion.system.IonSystemBuilder;
+import software.amazon.ion.system.IonReaderBuilder;
+import software.amazon.ion.system.IonTextWriterBuilder;
 
 /**
  * Parses a search path ion expression into {@link PathComponent}s.
  */
 class PathComponentParser {
 
-    private static final IonSystem ION_SYSTEM = IonSystemBuilder.standard().build();
+    private static final IonReaderBuilder READER_BUILDER = IonReaderBuilder.standard();
+    private static final IonTextWriterBuilder WRITER_BUILDER = IonTextWriterBuilder.standard();
 
     private static final String WILDCARD_ESCAPE_ANNOTATION = "$ion_extractor_field";
 
     List<PathComponent> parse(final String ionPathExpression) {
         List<PathComponent> pathComponents;
 
-        try (final IonReader reader = ION_SYSTEM.newReader(ionPathExpression)) {
+        try (final IonReader reader = newIonReader(ionPathExpression)) {
             checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
             checkArgument(reader.getType() == IonType.SEXP, "ionPathExpression must be a s-expression");
 
@@ -83,7 +83,7 @@ class PathComponentParser {
 
     private String readIonText(final IonReader reader) {
         StringBuilder out = new StringBuilder();
-        try (IonWriter writer = ION_SYSTEM.newTextWriter(out)) {
+        try (IonWriter writer = newIonTextWriter(out)) {
             writer.writeValue(reader);
         } catch (IOException e) {
             throw new PathExtractionException(e);
@@ -93,15 +93,17 @@ class PathComponentParser {
 
     private boolean isWildcard(final IonReader reader) {
         if (reader.stringValue().equals(Wildcard.TEXT)) {
-            for (final Iterator<String> iter = reader.iterateTypeAnnotations(); iter.hasNext(); ) {
-                final String annotation = iter.next();
-                if (WILDCARD_ESCAPE_ANNOTATION.equals(annotation)) {
-                    return false;
-                }
-            }
-
-            return true;
+            final String[] annotations = reader.getTypeAnnotations();
+            return annotations.length == 0 || !WILDCARD_ESCAPE_ANNOTATION.equals(annotations[0]);
         }
         return false;
+    }
+
+    private static IonReader newIonReader(final String ionText) {
+        return READER_BUILDER.build(ionText);
+    }
+
+    private static IonWriter newIonTextWriter(final StringBuilder out) {
+        return WRITER_BUILDER.build(out);
     }
 }
