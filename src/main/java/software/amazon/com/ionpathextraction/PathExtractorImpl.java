@@ -26,10 +26,10 @@ import software.amazon.ion.IonReader;
 
 /**
  * <p>
- *     Default implementation of {@link PathExtractor}.
+ * Default implementation of {@link PathExtractor}.
  * </p>
  * <p>
- *     <strong>WARNING:</strong> not Thread safe.
+ * <strong>WARNING:</strong> not Thread safe.
  * </p>
  */
 class PathExtractorImpl implements PathExtractor {
@@ -65,12 +65,14 @@ class PathExtractorImpl implements PathExtractor {
             "reader must be at depth zero, it was at:" + reader.getDepth());
 
         // short circuit when there are zero SearchPaths
-        if(searchPaths.isEmpty()) {
+        if (searchPaths.isEmpty()) {
             return;
         }
 
         // marks all search paths as active
         tracker.reset(searchPaths);
+        tracker.setInitialReaderDepth(reader.getDepth());
+
         matchRecursive(reader);
     }
 
@@ -134,6 +136,16 @@ class PathExtractorImpl implements PathExtractor {
                 + ", new: "
                 + newReaderDepth);
 
+        // we don't allow users to step out the initial reader depth
+        int readerRelativeDepth = reader.getDepth() - tracker.getInitialReaderDepth();
+
+        checkState(stepOutTimes <= readerRelativeDepth,
+            "Callback return cannot be greater than the reader current relative depth."
+                + " return: "
+                + stepOutTimes
+                + ", relative reader depth: "
+                + readerRelativeDepth);
+
         return stepOutTimes;
     }
 
@@ -176,6 +188,7 @@ class PathExtractorImpl implements PathExtractor {
     private static class Tracker {
 
         private final Deque<List<SearchPath>> stack;
+        private int initialReaderDepth;
 
         Tracker(final int size) {
             stack = new ArrayDeque<>(size);
@@ -200,6 +213,14 @@ class PathExtractorImpl implements PathExtractor {
 
         void pop() {
             stack.pop();
+        }
+
+        void setInitialReaderDepth(final int depth) {
+            initialReaderDepth = depth;
+        }
+
+        public int getInitialReaderDepth() {
+            return initialReaderDepth;
         }
     }
 }

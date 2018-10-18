@@ -156,6 +156,40 @@ class PathExtractorTest {
         assertEquals(ION.singleValue("[1,2,3]"), out)
     }
 
+    @Test
+    fun stepOutMoreThanPermitted() {
+        val extractor = PathExtractorBuilder.standard()
+                .register("(foo)") { _ -> 200 }
+                .build()
+
+        val exception = assertThrows<PathExtractionException> {
+            extractor.match(ION.newReader("{foo: 1}"))
+        }
+
+        assertEquals("Callback return cannot be greater than the reader current relative depth. " +
+                "return: 200, relative reader depth: 1", exception.message)
+    }
+
+    @Test
+    fun stepOutMoreThanPermittedWithRelative() {
+        val extractor = PathExtractorBuilder.standard()
+                .withMatchRelativePaths(true)
+                // even though you could step out twice in reader you can't given the initial reader depth
+                .register("(bar)") { _ -> 2 }
+                .build()
+
+        val newReader = ION.newReader("{foo: {bar: 1}}")
+        newReader.next()
+        newReader.stepIn() // positioned at the beginning of {bar: 1}
+
+        val exception = assertThrows<PathExtractionException> {
+            extractor.match(newReader)
+        }
+
+        assertEquals("Callback return cannot be greater than the reader current relative depth. return: 2, " +
+                "relative reader depth: 1", exception.message)
+    }
+
     // Invalid configuration -----------------------------------------------------------------------------
 
     @Test
