@@ -13,6 +13,8 @@
 
 package software.amazon.ionpathextraction;
 
+import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +48,8 @@ class PathComponentParser {
         List<PathComponent> pathComponents;
 
         try (final IonReader reader = newIonReader(ionPathExpression)) {
-            Preconditions.checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
-            Preconditions.checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
+            checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
+            checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
                 "ionPathExpression must be a s-expression or list");
 
             reader.stepIn();
