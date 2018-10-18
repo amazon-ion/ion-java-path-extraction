@@ -64,6 +64,11 @@ class PathExtractorImpl implements PathExtractor {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
             "reader must be at depth zero, it was at:" + reader.getDepth());
 
+        // short circuit when there are zero SearchPaths
+        if(searchPaths.isEmpty()) {
+            return;
+        }
+
         // marks all search paths as active
         tracker.reset(searchPaths);
         matchRecursive(reader);

@@ -1,3 +1,10 @@
+// zero search paths ---------------------------------------------------------------------
+// no-op extractor, data doesn't matter
+{ searchPath: [], expected: [], data: {foo: 1} }
+{ searchPath: [], expected: [], data: (3 4) }
+{ searchPath: [], expected: [], data: 99 }
+{ searchPath: [], expected: [], data: [1, 2] }
+
 // Field only ----------------------------------------------------------------------------
 
 // matches
