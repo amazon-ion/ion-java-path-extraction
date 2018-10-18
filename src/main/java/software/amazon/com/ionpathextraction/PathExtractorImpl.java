@@ -20,7 +20,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.function.Function;
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
@@ -39,17 +38,14 @@ class PathExtractorImpl implements PathExtractor {
     private final Tracker tracker;
 
     private final List<SearchPath> searchPaths;
-    private final List<Function<IonReader, Integer>> callbacks;
 
     /**
      * Constructor, should only be invoked by {@link PathExtractorBuilder}.
      */
     PathExtractorImpl(final List<SearchPath> searchPaths,
-                      final List<Function<IonReader, Integer>> callbacks,
                       final PathExtractorConfig config) {
 
         this.searchPaths = searchPaths;
-        this.callbacks = callbacks;
         this.config = config;
 
         int maxSearchPathDepth = searchPaths.stream()
@@ -85,30 +81,24 @@ class PathExtractorImpl implements PathExtractor {
             // will continue to next depth
             final List<SearchPath> partialMatches = new ArrayList<>();
 
-            boolean hasTerminalMatch = false;
             for (SearchPath sp : tracker.activePaths()) {
                 boolean match = pathComponentMatches(sp, reader, ordinal);
                 boolean isTerminal = isTerminal(sp);
 
                 if (match && isTerminal) {
-                    hasTerminalMatch = true;
                     int stepOutTimes = invokeCallback(reader, sp);
                     if (stepOutTimes > 0) {
                         return stepOutTimes - 1;
                     }
                 }
 
-                if (!isTerminal) {
-                    // all non terminal paths are partial pathComponentMatches at depth zero
-                    if (currentDepth == 0) {
-                        partialMatches.add(sp);
-                    } else if (match) {
-                        partialMatches.add(sp);
-                    }
+                // all non terminal paths are partial matches at depth zero
+                if (!isTerminal && (currentDepth == 0 || match)) {
+                    partialMatches.add(sp);
                 }
             }
 
-            if (needsToStepIn(reader, hasTerminalMatch)) {
+            if (IonType.isContainer(reader.getType()) && !partialMatches.isEmpty()) {
                 tracker.push(partialMatches);
                 reader.stepIn();
                 int stepOutTimes = matchRecursive(reader);
@@ -128,7 +118,7 @@ class PathExtractorImpl implements PathExtractor {
 
     private int invokeCallback(final IonReader reader, final SearchPath searchPath) {
         int previousReaderDepth = reader.getDepth();
-        int stepOutTimes = callbacks.get(searchPath.getId()).apply(reader);
+        int stepOutTimes = searchPath.getCallback().apply(reader);
         int newReaderDepth = reader.getDepth();
 
         checkState(previousReaderDepth == newReaderDepth,
@@ -148,14 +138,6 @@ class PathExtractorImpl implements PathExtractor {
                 + readerRelativeDepth);
 
         return stepOutTimes;
-    }
-
-    private boolean needsToStepIn(final IonReader reader, final boolean hasTerminalMatches) {
-        if (tracker.getCurrentDepth() == 0 && hasTerminalMatches) {
-            return false;
-        }
-
-        return IonType.isContainer(reader.getType());
     }
 
     private boolean pathComponentMatches(final SearchPath searchPath,

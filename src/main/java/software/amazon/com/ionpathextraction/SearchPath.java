@@ -14,26 +14,28 @@
 package software.amazon.com.ionpathextraction;
 
 import java.util.List;
+import java.util.function.Function;
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
+import software.amazon.ion.IonReader;
 
 /**
  * A path which is provided to the extractor for matching.
  */
 class SearchPath {
 
-    private final int id;
     private final List<PathComponent> pathComponents;
+    private final Function<IonReader, Integer> callback;
 
-    SearchPath(final int id, final List<PathComponent> pathComponents) {
-        this.id = id;
+    SearchPath(final List<PathComponent> pathComponents, final Function<IonReader, Integer> callback) {
         this.pathComponents = pathComponents;
-    }
-
-    int getId() {
-        return id;
+        this.callback = callback;
     }
 
     List<PathComponent> getPathComponents() {
         return pathComponents;
+    }
+
+    public Function<IonReader, Integer> getCallback() {
+        return callback;
     }
 }

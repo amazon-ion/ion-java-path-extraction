@@ -29,7 +29,6 @@ public final class PathExtractorBuilder {
     private static final boolean DEFAULT_MATCH_RELATIVE_PATHS = false;
     private static final boolean DEFAULT_CASE_INSENSITIVE = false;
     private final List<SearchPath> searchPaths = new ArrayList<>();
-    private final List<Function<IonReader, Integer>> callbacks = new ArrayList<>();
     private boolean matchRelativePaths;
     private boolean matchCaseInsensitive;
 
@@ -55,11 +54,7 @@ public final class PathExtractorBuilder {
      * @return new {@link PathExtractor} instance.
      */
     public PathExtractor build() {
-        return new PathExtractorImpl(
-            searchPaths,
-            callbacks,
-            new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive)
-        );
+        return new PathExtractorImpl(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive));
     }
 
     /**
@@ -141,6 +136,11 @@ public final class PathExtractorBuilder {
      *         Return value must be between zero and the the current reader relative depth, for example the following
      *         search path (foo bar) must return values between 0 and 2 inclusive.
      *      </li>
+     *      <li>
+     *         When there are nested search paths, e.g. (foo) and (foo bar), the callback for (foo) should not read the
+     *         reader value if it's a container. Doing so will advance the reader to the end of the container making
+     *         impossible to match (foo bar).
+     *      </li>
      * </ul>
      *
      * @param pathComponents search path as a list of path components.
@@ -153,8 +153,7 @@ public final class PathExtractorBuilder {
         checkArgument(pathComponents != null, "pathComponents cannot be null");
         checkArgument(callback != null, "callback cannot be null");
 
-        searchPaths.add(new SearchPath(searchPaths.size(), pathComponents));
-        callbacks.add(callback);
+        searchPaths.add(new SearchPath(pathComponents, callback));
 
         return this;
     }

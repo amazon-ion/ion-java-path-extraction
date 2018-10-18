@@ -13,13 +13,13 @@
 
 package software.amazon.com.ionpathextraction
 
+import org.junit.Assert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.com.ionpathextraction.PathExtractorTest.Companion.toText
 import software.amazon.com.ionpathextraction.exceptions.PathExtractionException
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent
 import software.amazon.ion.*
@@ -55,7 +55,7 @@ class PathExtractorTest {
                         .map { struct ->
 
                             // single
-                            val searchPaths = if(struct.containsKey("searchPath")) {
+                            val searchPaths = if (struct.containsKey("searchPath")) {
                                 listOf(struct["searchPath"].toText())
                             }
                             // multiple
@@ -193,6 +193,35 @@ class PathExtractorTest {
 
         assertEquals("Callback return cannot be greater than the reader current relative depth. return: 2, " +
                 "relative reader depth: 1", exception.message)
+    }
+
+    @Test
+    fun nestedSearchPaths() {
+        // Test only that the correct callbacks were called as reading the value for (foo)
+        // will advance the reader making (foo bar) not match
+
+        val counter = mutableMapOf(
+                "()" to 0,
+                "(foo)" to 0,
+                "(foo bar)" to 0
+        )
+
+        val extractor = PathExtractorBuilder.standard().apply {
+            counter.forEach { sp, _ ->
+                withSearchPath(sp) { _ ->
+                    counter[sp] = counter[sp]!! + 1
+                    0
+                }
+            }
+        }.build()
+
+
+        extractor.match(ION.newReader("{foo: {bar: 1}}"))
+
+        assertEquals(3, counter.size)
+        assertEquals(1, counter["()"])
+        assertEquals(1, counter["(foo)"])
+        assertEquals(1, counter["(foo bar)"])
     }
 
     // Invalid configuration -----------------------------------------------------------------------------
