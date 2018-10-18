@@ -13,14 +13,8 @@
 
 package software.amazon.com.ionpathextraction;
 
-import static software.amazon.com.ionpathextraction.utils.Preconditions.checkArgument;
-
 import java.util.List;
-import java.util.function.Function;
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
-import software.amazon.ion.IonReader;
-
-// FIXME this is a weird class, probably better to remove it
 
 /**
  * A path which is provided to the extractor for matching.

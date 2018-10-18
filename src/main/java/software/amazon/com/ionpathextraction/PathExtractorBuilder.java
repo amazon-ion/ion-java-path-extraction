@@ -116,10 +116,10 @@ public final class PathExtractorBuilder {
      * Register a callback for a search path.
      * <p>
      *     The callback receives the matcher's {@link IonReader}, positioned on the matching value, so that it can use
-     *     the appropriate reader method to access the value. The callback return value is as a ‘step-out-N’
-     *     instruction. The most common value is zero, which tells the extractor to continue with the next value at the
-     *     same depth. A return value greater than zero may be useful to users who only care about the first match at a
-     *     particular depth
+     *     the appropriate reader method to access the value. The callback return value is a ‘step-out-N’ instruction.
+     *     The most common value is zero, which tells the extractor to continue with the next value at the same depth. A
+     *     return value greater than zero may be useful to users who only care about the first match at a particular
+     *     depth.
      * </p>
      *
      * <p>

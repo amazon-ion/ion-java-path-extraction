@@ -51,12 +51,12 @@ class PathExtractorImpl implements PathExtractor {
         this.callbacks = callbacks;
         this.config = config;
 
-        int size = searchPaths.stream()
-            .mapToInt(SearchPath::getId)
+        int maxSearchPathDepth = searchPaths.stream()
+            .mapToInt(sp -> sp.getPathComponents().size())
             .max()
             .orElse(0);
 
-        tracker = new Tracker(size);
+        tracker = new Tracker(maxSearchPathDepth);
     }
 
     @Override
