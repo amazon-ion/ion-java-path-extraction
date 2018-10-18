@@ -11,7 +11,7 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
+package software.amazon.ionpathextraction;
 
 import static org.junit.Assert.assertEquals;
 

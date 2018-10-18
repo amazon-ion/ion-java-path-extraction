@@ -11,22 +11,23 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction.exceptions;
+package software.amazon.ionpathextraction;
 
-/**
- * Base exception.
- */
-public class PathExtractionException extends RuntimeException {
+public class PathExtractorConfig {
 
-    public PathExtractionException(final String message) {
-        super(message);
+    private final boolean matchRelativePaths;
+    private final boolean matchCaseInsensitive;
+
+    PathExtractorConfig(final boolean matchRelativePaths, final boolean matchCaseInsensitive) {
+        this.matchRelativePaths = matchRelativePaths;
+        this.matchCaseInsensitive = matchCaseInsensitive;
     }
 
-    public PathExtractionException(final String message, final Throwable cause) {
-        super(message, cause);
+    boolean isMatchRelativePaths() {
+        return matchRelativePaths;
     }
 
-    public PathExtractionException(final Throwable cause) {
-        super(cause);
+    public boolean isMatchCaseInsensitive() {
+        return matchCaseInsensitive;
     }
 }

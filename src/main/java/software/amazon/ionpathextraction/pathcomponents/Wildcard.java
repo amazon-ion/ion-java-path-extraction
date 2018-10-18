@@ -11,10 +11,10 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction.pathcomponents;
+package software.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.com.ionpathextraction.PathExtractorConfig;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.PathExtractorConfig;
 
 /**
  * Wildcard path component matches any value, example.
@@ -36,7 +36,9 @@ public class Wildcard implements PathComponent {
      */
     public static final Wildcard INSTANCE = new Wildcard();
 
-    /** use INSTANCE. */
+    /**
+     * use INSTANCE.
+     */
     private Wildcard() {
     }
 

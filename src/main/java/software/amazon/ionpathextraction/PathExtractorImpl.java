@@ -11,18 +11,18 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
+package software.amazon.ionpathextraction;
 
-import static software.amazon.com.ionpathextraction.utils.Preconditions.checkArgument;
-import static software.amazon.com.ionpathextraction.utils.Preconditions.checkState;
+import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.utils.Preconditions.checkState;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
+import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * <p>
@@ -190,12 +190,12 @@ class PathExtractorImpl implements PathExtractor {
             stack.pop();
         }
 
-        void setInitialReaderDepth(final int depth) {
-            initialReaderDepth = depth;
-        }
-
         int getInitialReaderDepth() {
             return initialReaderDepth;
+        }
+
+        void setInitialReaderDepth(final int depth) {
+            initialReaderDepth = depth;
         }
     }
 }

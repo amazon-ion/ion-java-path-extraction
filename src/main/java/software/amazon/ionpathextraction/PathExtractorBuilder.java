@@ -11,15 +11,15 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
+package software.amazon.ionpathextraction;
 
-import static software.amazon.com.ionpathextraction.utils.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * {@link PathExtractor} builder.
@@ -110,37 +110,36 @@ public final class PathExtractorBuilder {
     /**
      * Register a callback for a search path.
      * <p>
-     *     The callback receives the matcher's {@link IonReader}, positioned on the matching value, so that it can use
-     *     the appropriate reader method to access the value. The callback return value is a ‘step-out-N’ instruction.
-     *     The most common value is zero, which tells the extractor to continue with the next value at the same depth. A
-     *     return value greater than zero may be useful to users who only care about the first match at a particular
-     *     depth.
+     * The callback receives the matcher's {@link IonReader}, positioned on the matching value, so that it can use the
+     * appropriate reader method to access the value. The callback return value is a ‘step-out-N’ instruction. The most
+     * common value is zero, which tells the extractor to continue with the next value at the same depth. A return value
+     * greater than zero may be useful to users who only care about the first match at a particular depth.
      * </p>
      *
      * <p>
-     *     Callback implementations <strong>MUST</strong> comply with the following:
+     * Callback implementations <strong>MUST</strong> comply with the following:
      * </p>
      *
      * <ul>
-     *     <li>
-     *         The reader must not be advanced past the matching value. Violating this will cause the following value to
-     *         be skipped. If a value is skipped, neither the value itself nor any of its children will be checked for
-     *         match against any of the extractor's registered paths.
-     *     </li>
-     *     <li>
-     *         If the reader is positioned on a container value, its cursor must be at the same depth when the callback
-     *         returns. In other words, if the user steps in to the matched value, it must step out an equal number of
-     *         times. Violating this will raise an error.
-     *      </li>
-     *      <li>
-     *         Return value must be between zero and the the current reader relative depth, for example the following
-     *         search path (foo bar) must return values between 0 and 2 inclusive.
-     *      </li>
-     *      <li>
-     *         When there are nested search paths, e.g. (foo) and (foo bar), the callback for (foo) should not read the
-     *         reader value if it's a container. Doing so will advance the reader to the end of the container making
-     *         impossible to match (foo bar).
-     *      </li>
+     * <li>
+     * The reader must not be advanced past the matching value. Violating this will cause the following value to be
+     * skipped. If a value is skipped, neither the value itself nor any of its children will be checked for match
+     * against any of the extractor's registered paths.
+     * </li>
+     * <li>
+     * If the reader is positioned on a container value, its cursor must be at the same depth when the callback returns.
+     * In other words, if the user steps in to the matched value, it must step out an equal number of times. Violating
+     * this will raise an error.
+     * </li>
+     * <li>
+     * Return value must be between zero and the the current reader relative depth, for example the following search
+     * path (foo bar) must return values between 0 and 2 inclusive.
+     * </li>
+     * <li>
+     * When there are nested search paths, e.g. (foo) and (foo bar), the callback for (foo) should not read the reader
+     * value if it's a container. Doing so will advance the reader to the end of the container making impossible to
+     * match (foo bar).
+     * </li>
      * </ul>
      *
      * @param pathComponents search path as a list of path components.

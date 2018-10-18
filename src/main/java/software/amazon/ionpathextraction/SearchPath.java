@@ -11,12 +11,12 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
+package software.amazon.ionpathextraction;
 
 import java.util.List;
 import java.util.function.Function;
-import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * A path which is provided to the extractor for matching.
