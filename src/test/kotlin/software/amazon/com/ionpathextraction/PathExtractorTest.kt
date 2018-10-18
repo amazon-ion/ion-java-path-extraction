@@ -19,6 +19,7 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import software.amazon.com.ionpathextraction.PathExtractorTest.Companion.toText
 import software.amazon.com.ionpathextraction.exceptions.PathExtractionException
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent
 import software.amazon.ion.*
@@ -52,10 +53,14 @@ class PathExtractorTest {
                 ION.loader.load(File("src/test/resources/test-cases.ion"))
                         .map { it as IonStruct }
                         .map { struct ->
-                            val searchPathIonValue = struct["searchPath"]
-                            val searchPaths = when (searchPathIonValue) {
-                                is IonList -> searchPathIonValue.map { it.toText() }
-                                else -> listOf(searchPathIonValue.toText())
+
+                            // single
+                            val searchPaths = if(struct.containsKey("searchPath")) {
+                                listOf(struct["searchPath"].toText())
+                            }
+                            // multiple
+                            else {
+                                (struct["searchPaths"] as IonSequence).map { it.toText() }
                             }
 
                             TestCase(
@@ -198,7 +203,7 @@ class PathExtractorTest {
             PathExtractorBuilder.standard().withSearchPath(null as String?, emptyCallback)
         }
 
-        assertEquals("searchExpressionAsIon cannot be null", exception.message)
+        assertEquals("searchPathAsIon cannot be null", exception.message)
     }
 
     @Test
@@ -229,11 +234,11 @@ class PathExtractorTest {
     }
 
     @Test
-    fun searchPathNotSexp() {
+    fun searchPathNotSequence() {
         val exception = assertThrows<PathExtractionException> {
             PathExtractorBuilder.standard().withSearchPath("1", emptyCallback)
         }
 
-        assertEquals("ionPathExpression must be a s-expression", exception.message)
+        assertEquals("ionPathExpression must be a s-expression or list", exception.message)
     }
 }

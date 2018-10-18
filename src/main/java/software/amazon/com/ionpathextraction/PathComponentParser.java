@@ -47,7 +47,8 @@ class PathComponentParser {
 
         try (final IonReader reader = newIonReader(ionPathExpression)) {
             checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
-            checkArgument(reader.getType() == IonType.SEXP, "ionPathExpression must be a s-expression");
+            checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
+                "ionPathExpression must be a s-expression or list");
 
             reader.stepIn();
             pathComponents = readStates(reader);

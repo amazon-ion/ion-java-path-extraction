@@ -1,14 +1,38 @@
+/*
+
+Test case spec:
+
+single search path:
+{
+  searchPath: <search path as ion>,
+  data: <ion data to be read>,
+  expected: <list containing expected matched values in order>
+}
+
+multiple search paths:
+{
+  searchPaths: <list or s-exp with search paths as ion>,
+  data: <same as single search path>,
+  expected: <same as single search path>
+}
+
+Only difference is that for multiple the searchPath key is pluralized to searchPaths and expects an Ion sequence of
+search paths
+
+*/
+
 // zero search paths ---------------------------------------------------------------------
 // no-op extractor, data doesn't matter
-{ searchPath: [], expected: [], data: {foo: 1} }
-{ searchPath: [], expected: [], data: (3 4) }
-{ searchPath: [], expected: [], data: 99 }
-{ searchPath: [], expected: [], data: [1, 2] }
+{ searchPaths: [], expected: [], data: {foo: 1} }
+{ searchPaths: [], expected: [], data: (3 4) }
+{ searchPaths: [], expected: [], data: 99 }
+{ searchPaths: [], expected: [], data: [1, 2] }
 
 // Field only ----------------------------------------------------------------------------
 
 // matches
 { searchPath: (foo),     data: {foo: 1},         expected: [1] }
+{ searchPath: [foo],     data: {foo: 1},         expected: [1] }
 { searchPath: (foo bar), data: {foo: {bar : 2}}, expected: [2] }
 
 // escaped wildcard
@@ -56,6 +80,7 @@
 
 // matches
 { searchPath: (0), data: [1],            expected: [1] }
+{ searchPath: [0], data: [1],            expected: [1] }
 { searchPath: (0), data: (1),            expected: [1] }
 { searchPath: (0), data: {f: 1},         expected: [1] }
 { searchPath: (1), data: [1, 2],         expected: [2] }
@@ -92,6 +117,7 @@
 
 // matches
 { searchPath: (*),   data: [1],                  expected: [1] }
+{ searchPath: ['*'], data: [1],                  expected: [1] }
 { searchPath: (*),   data: (1),                  expected: [1] }
 { searchPath: (*),   data: {f: 1},               expected: [1] }
 { searchPath: (*),   data: [1, 2],               expected: [1, 2] }
@@ -137,6 +163,7 @@
 
 // containers
 { searchPath: (), data: [1], expected: [[1]] }
+{ searchPath: [], data: [1], expected: [[1]] }
 { searchPath: (), data: (1), expected: [(1)] }
 { searchPath: (), data: {foo: 1}, expected: [{foo: 1}] }
 
@@ -165,7 +192,7 @@
   expected: [1, 2, 3]
 }
 {
-  searchPath: (foo *),
+  searchPath: [foo, '*'],
   data: { foo: [1], foo: (2), foo: {bar: 3}, foo: 1, bar: (9) },
   expected: [1, 2, 3]
 }
@@ -208,12 +235,12 @@
 
 // Multiple search paths -----------------------------------------------------------------
 // all match
-{ searchPath: [(0), (foo)], data: {bar: 1, foo: 2}, expected: [1, 2] }
+{ searchPaths: [(0), (foo)], data: {bar: 1, foo: 2}, expected: [1, 2] }
 
 // none match
-{ searchPath: [(1), (foo)], data: [0], expected: [] }
+{ searchPaths: [(1), [foo]], data: [0], expected: [] }
 
 // multiple matchers match the same value
-{ searchPath: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
+{ searchPaths: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
 
-{ searchPath: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
+{ searchPaths: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
