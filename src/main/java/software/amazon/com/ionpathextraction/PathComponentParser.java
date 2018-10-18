@@ -39,7 +39,10 @@ class PathComponentParser {
 
     private static final String WILDCARD_ESCAPE_ANNOTATION = "$ion_extractor_field";
 
-    List<PathComponent> parse(final String ionPathExpression) {
+    // only has static methods, should not be invoked
+    private PathComponentParser() {}
+
+    static List<PathComponent> parse(final String ionPathExpression) {
         List<PathComponent> pathComponents;
 
         try (final IonReader reader = newIonReader(ionPathExpression)) {
@@ -55,7 +58,7 @@ class PathComponentParser {
         return pathComponents;
     }
 
-    private List<PathComponent> readStates(final IonReader reader) {
+    private static List<PathComponent> readStates(final IonReader reader) {
         final List<PathComponent> pathComponents = new ArrayList<>();
 
         while (reader.next() != null) {
@@ -81,7 +84,7 @@ class PathComponentParser {
         return pathComponents;
     }
 
-    private String readIonText(final IonReader reader) {
+    private static String readIonText(final IonReader reader) {
         StringBuilder out = new StringBuilder();
         try (IonWriter writer = newIonTextWriter(out)) {
             writer.writeValue(reader);
@@ -91,7 +94,7 @@ class PathComponentParser {
         return out.toString();
     }
 
-    private boolean isWildcard(final IonReader reader) {
+    private static boolean isWildcard(final IonReader reader) {
         if (reader.stringValue().equals(Wildcard.TEXT)) {
             final String[] annotations = reader.getTypeAnnotations();
             return annotations.length == 0 || !WILDCARD_ESCAPE_ANNOTATION.equals(annotations[0]);

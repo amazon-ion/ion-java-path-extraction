@@ -32,8 +32,6 @@ public final class PathExtractorBuilder {
     private final List<Function<IonReader, Integer>> callbacks = new ArrayList<>();
     private boolean matchRelativePaths;
     private boolean matchCaseInsensitive;
-    private PathComponentParser compiler;
-
 
     private PathExtractorBuilder() {
     }
@@ -48,8 +46,6 @@ public final class PathExtractorBuilder {
         builder.matchCaseInsensitive = DEFAULT_CASE_INSENSITIVE;
         builder.matchRelativePaths = DEFAULT_MATCH_RELATIVE_PATHS;
 
-        builder.compiler = new PathComponentParser();
-
         return builder;
     }
 
@@ -59,7 +55,7 @@ public final class PathExtractorBuilder {
      * @return new {@link PathExtractor} instance.
      */
     public PathExtractor build() {
-        return new PathExtractor(
+        return new PathExtractorImpl(
             searchPaths,
             callbacks,
             new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive)
@@ -110,7 +106,7 @@ public final class PathExtractorBuilder {
                                          final Function<IonReader, Integer> callback) {
         checkArgument(searchExpressionAsIon != null, "searchExpressionAsIon cannot be null");
 
-        List<PathComponent> pathComponents = compiler.parse(searchExpressionAsIon);
+        List<PathComponent> pathComponents = PathComponentParser.parse(searchExpressionAsIon);
         register(pathComponents, callback);
 
         return this;
