@@ -56,31 +56,28 @@ information on the callback contract.
 
 ```java
 // Capture all matched values into a List
-final IonSystem ion = IonSystemBuilder.standard().build();
-
-final List<IonValue> list = new ArrayList<>();
+final List<Integer> list = new ArrayList<>();
 final Function<IonReader, Integer> callback = (reader) -> {
-    IonValue ionValue = ion.newValue(reader);
-    list.add(ionValue);
+    list.add(reader.intValue());
 
     return 0;
 };
 
 final PathExtractor pathExtractor = PathExtractorBuilder.standard()
-    .register("(foo)", callback)
-    .register("(bar)", callback)
-    .register("(baz 1)", callback)
+    .withSearchPath("(foo)", callback)
+    .withSearchPath("(bar)", callback)
+    .withSearchPath("(baz 1)", callback)
     .build();
 
-IonReader ionReader = ion.newReader("{foo: 1}"
-    + "{bar: 2}"
-    + "{baz: [10,20,30,40]}"
-    + "{other: 99}"
+final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
+        + "{bar: 2}"
+        + "{baz: [10,20,30,40]}"
+        + "{other: 99}"
 );
 
 pathExtractor.match(ionReader);
 
-// list will contain 1, 2 and 20
+assertEquals("[1, 2, 20]", list.toString());
 ```
 
 ## Ion Developer information
