@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ion.IonReader;
+import software.amazon.ion.IonType;
 
 /**
  * <p>
@@ -154,15 +155,7 @@ class PathExtractorImpl implements PathExtractor {
             return false;
         }
 
-        switch (reader.getType()) {
-            case LIST:
-            case SEXP:
-            case STRUCT:
-            case DATAGRAM:
-                return true;
-        }
-
-        return false;
+        return IonType.isContainer(reader.getType());
     }
 
     private boolean pathComponentMatches(final SearchPath searchPath,
@@ -219,7 +212,7 @@ class PathExtractorImpl implements PathExtractor {
             initialReaderDepth = depth;
         }
 
-        public int getInitialReaderDepth() {
+        int getInitialReaderDepth() {
             return initialReaderDepth;
         }
     }
