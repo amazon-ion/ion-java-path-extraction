@@ -11,9 +11,9 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction.utils;
+package software.amazon.ionpathextraction.utils;
 
-import software.amazon.com.ionpathextraction.exceptions.PathExtractionException;
+import software.amazon.ionpathextraction.exceptions.PathExtractionException;
 
 /**
  * Precondition check helper.

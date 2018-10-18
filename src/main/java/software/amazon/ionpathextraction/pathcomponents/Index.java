@@ -11,10 +11,10 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction.pathcomponents;
+package software.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.com.ionpathextraction.PathExtractorConfig;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.PathExtractorConfig;
 
 /**
  * Index path component matches collection by position, example.

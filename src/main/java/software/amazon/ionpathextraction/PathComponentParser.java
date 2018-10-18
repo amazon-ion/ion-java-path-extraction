@@ -11,23 +11,22 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
-
-import static software.amazon.com.ionpathextraction.utils.Preconditions.checkArgument;
+package software.amazon.ionpathextraction;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.com.ionpathextraction.exceptions.PathExtractionException;
-import software.amazon.com.ionpathextraction.pathcomponents.Index;
-import software.amazon.com.ionpathextraction.pathcomponents.PathComponent;
-import software.amazon.com.ionpathextraction.pathcomponents.Text;
-import software.amazon.com.ionpathextraction.pathcomponents.Wildcard;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
 import software.amazon.ion.IonWriter;
 import software.amazon.ion.system.IonReaderBuilder;
 import software.amazon.ion.system.IonTextWriterBuilder;
+import software.amazon.ionpathextraction.exceptions.PathExtractionException;
+import software.amazon.ionpathextraction.pathcomponents.Index;
+import software.amazon.ionpathextraction.pathcomponents.PathComponent;
+import software.amazon.ionpathextraction.pathcomponents.Text;
+import software.amazon.ionpathextraction.pathcomponents.Wildcard;
+import software.amazon.ionpathextraction.utils.Preconditions;
 
 /**
  * Parses a search path ion expression into {@link PathComponent}s.
@@ -40,14 +39,15 @@ class PathComponentParser {
     private static final String WILDCARD_ESCAPE_ANNOTATION = "$ion_extractor_field";
 
     // only has static methods, should not be invoked
-    private PathComponentParser() {}
+    private PathComponentParser() {
+    }
 
     static List<PathComponent> parse(final String ionPathExpression) {
         List<PathComponent> pathComponents;
 
         try (final IonReader reader = newIonReader(ionPathExpression)) {
-            checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
-            checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
+            Preconditions.checkArgument(reader.next() != null, "ionPathExpression cannot be empty");
+            Preconditions.checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
                 "ionPathExpression must be a s-expression or list");
 
             reader.stepIn();

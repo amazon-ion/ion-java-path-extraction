@@ -11,7 +11,7 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.com.ionpathextraction;
+package software.amazon.ionpathextraction;
 
 import software.amazon.ion.IonReader;
 
@@ -29,7 +29,7 @@ import software.amazon.ion.IonReader;
  * </p>
  *
  * <p>
- *     <strong>WARNING:</strong>Implementations of this interface are not required to be Thread safe
+ * <strong>WARNING:</strong>Implementations of this interface are not required to be Thread safe
  * </p>
  */
 public interface PathExtractor {
