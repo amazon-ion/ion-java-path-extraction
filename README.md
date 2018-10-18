@@ -41,7 +41,7 @@ example:
 ```java 
 PathExtractorBuilder.standard()
                     .withMatchCaseInsensitive(true) 
-                    .register("(foo)", (reader) -> { ... })
+                    .withSearchPath("(foo)", (reader) -> { ... })
                     .build()
 ``` 
 
@@ -49,7 +49,7 @@ see `PathExtractorBuilder` javadoc for more information on configuration options
 
 ### Notification  
 Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective 
-callback passing the reader positioned at the current value. See `PathExtractorBuilder#register` methods for more 
+callback passing the reader positioned at the current value. See `PathExtractorBuilder#withSearchPath` methods for more 
 information on the callback contract.
 
 ### Examples: 
