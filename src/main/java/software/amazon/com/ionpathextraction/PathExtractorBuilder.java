@@ -97,17 +97,17 @@ public final class PathExtractorBuilder {
     /**
      * Register a callback for a search path.
      *
-     * @param searchExpressionAsIon string representation of a search path.
+     * @param searchPathAsIon string representation of a search path.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#register(List, Function)
+     * @see PathExtractorBuilder#withSearchPath(List, Function)
      */
-    public PathExtractorBuilder register(final String searchExpressionAsIon,
-                                         final Function<IonReader, Integer> callback) {
-        checkArgument(searchExpressionAsIon != null, "searchExpressionAsIon cannot be null");
+    public PathExtractorBuilder withSearchPath(final String searchPathAsIon,
+                                               final Function<IonReader, Integer> callback) {
+        checkArgument(searchPathAsIon != null, "searchPathAsIon cannot be null");
 
-        List<PathComponent> pathComponents = PathComponentParser.parse(searchExpressionAsIon);
-        register(pathComponents, callback);
+        List<PathComponent> pathComponents = PathComponentParser.parse(searchPathAsIon);
+        withSearchPath(pathComponents, callback);
 
         return this;
     }
@@ -146,10 +146,10 @@ public final class PathExtractorBuilder {
      * @param pathComponents search path as a list of path components.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#register(String, Function)
+     * @see PathExtractorBuilder#withSearchPath(String, Function)
      */
-    public PathExtractorBuilder register(final List<PathComponent> pathComponents,
-                                         final Function<IonReader, Integer> callback) {
+    public PathExtractorBuilder withSearchPath(final List<PathComponent> pathComponents,
+                                               final Function<IonReader, Integer> callback) {
         checkArgument(pathComponents != null, "pathComponents cannot be null");
         checkArgument(callback != null, "callback cannot be null");
 

@@ -80,7 +80,7 @@ class PathExtractorTest {
         val out = ION.newEmptyList()
 
         val builder = PathExtractorBuilder.standard()
-        testCase.searchPaths.forEach { builder.register(it, collectToIonList(out, testCase.stepOutNumber)) }
+        testCase.searchPaths.forEach { builder.withSearchPath(it, collectToIonList(out, testCase.stepOutNumber)) }
         val extractor = builder.build()
 
         extractor.match(ION.newReader(testCase.data))
@@ -94,11 +94,11 @@ class PathExtractorTest {
         var timesCallback2Called = 0
 
         val extractor = PathExtractorBuilder.standard()
-                .register("(foo)") {
+                .withSearchPath("(foo)") {
                     timesCallback1Called++
                     0
                 }
-                .register("(bar)") {
+                .withSearchPath("(bar)") {
                     timesCallback2Called++
                     0
                 }
@@ -115,7 +115,7 @@ class PathExtractorTest {
     @Test
     fun readerAtInvalidDepth() {
         val extractor = PathExtractorBuilder.standard()
-                .register("(foo)") { 0 }
+                .withSearchPath("(foo)") { 0 }
                 .build()
 
         val reader = ION.newReader("[{foo: 1}]")
@@ -131,7 +131,7 @@ class PathExtractorTest {
         val out = ION.newEmptyList()
         val extractor = PathExtractorBuilder.standard()
                 .withMatchRelativePaths(true)
-                .register("(foo)", collectToIonList(out, 0))
+                .withSearchPath("(foo)", collectToIonList(out, 0))
                 .build()
 
         val reader = ION.newReader("[{foo: 1}]")
@@ -148,7 +148,7 @@ class PathExtractorTest {
         val out = ION.newEmptyList()
         val extractor = PathExtractorBuilder.standard()
                 .withMatchCaseInsensitive(true)
-                .register("(foo)", collectToIonList(out, 0))
+                .withSearchPath("(foo)", collectToIonList(out, 0))
                 .build()
 
         extractor.match(ION.newReader("{FOO: 1}{foo: 2}{fOo: 3}{bar: 4}"))
@@ -159,7 +159,7 @@ class PathExtractorTest {
     @Test
     fun stepOutMoreThanPermitted() {
         val extractor = PathExtractorBuilder.standard()
-                .register("(foo)") { _ -> 200 }
+                .withSearchPath("(foo)") { _ -> 200 }
                 .build()
 
         val exception = assertThrows<PathExtractionException> {
@@ -175,7 +175,7 @@ class PathExtractorTest {
         val extractor = PathExtractorBuilder.standard()
                 .withMatchRelativePaths(true)
                 // even though you could step out twice in reader you can't given the initial reader depth
-                .register("(bar)") { _ -> 2 }
+                .withSearchPath("(bar)") { _ -> 2 }
                 .build()
 
         val newReader = ION.newReader("{foo: {bar: 1}}")
@@ -195,7 +195,7 @@ class PathExtractorTest {
     @Test
     fun nullStringPath() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard().register(null as String?, emptyCallback)
+            PathExtractorBuilder.standard().withSearchPath(null as String?, emptyCallback)
         }
 
         assertEquals("searchExpressionAsIon cannot be null", exception.message)
@@ -204,7 +204,7 @@ class PathExtractorTest {
     @Test
     fun nullListPath() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard().register(null as List<PathComponent>?, emptyCallback)
+            PathExtractorBuilder.standard().withSearchPath(null as List<PathComponent>?, emptyCallback)
         }
 
         assertEquals("pathComponents cannot be null", exception.message)
@@ -213,7 +213,7 @@ class PathExtractorTest {
     @Test
     fun nullCallback() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard().register("(foo)", null)
+            PathExtractorBuilder.standard().withSearchPath("(foo)", null)
         }
 
         assertEquals("callback cannot be null", exception.message)
@@ -222,7 +222,7 @@ class PathExtractorTest {
     @Test
     fun emptySearchPath() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard().register("", emptyCallback)
+            PathExtractorBuilder.standard().withSearchPath("", emptyCallback)
         }
 
         assertEquals("ionPathExpression cannot be empty", exception.message)
@@ -231,7 +231,7 @@ class PathExtractorTest {
     @Test
     fun searchPathNotSexp() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard().register("1", emptyCallback)
+            PathExtractorBuilder.standard().withSearchPath("1", emptyCallback)
         }
 
         assertEquals("ionPathExpression must be a s-expression", exception.message)
