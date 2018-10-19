@@ -52,7 +52,7 @@ Each time the `PathExtractor` encounters a value that matches a registered searc
 callback passing the reader positioned at the current value. See `PathExtractorBuilder#withSearchPath` methods for more 
 information on the callback contract.
 
-### Examples: 
+### Example: 
 
 ```java
 // Capture all matched values into a List
@@ -60,7 +60,7 @@ final List<Integer> list = new ArrayList<>();
 final Function<IonReader, Integer> callback = (reader) -> {
     list.add(reader.intValue());
 
-    return 0;
+    return 0; // See PathExtractorBuilder#withSearchPath javadoc for more details on the callback contract
 };
 
 final PathExtractor pathExtractor = PathExtractorBuilder.standard()
