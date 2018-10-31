@@ -78,7 +78,7 @@ final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
 pathExtractor.match(ionReader);
 
 assertEquals("[1, 2, 20]", list.toString());
-```pa
+```
 
 ## Benchmark 
 
