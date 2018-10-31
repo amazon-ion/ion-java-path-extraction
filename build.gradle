@@ -18,10 +18,15 @@ buildscript {
 
     repositories {
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
     dependencies {
+        classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "software.amazon.ion:ion-java:$ionVersion"
     }
 }
 
@@ -37,23 +42,23 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    compile "software.amazon.ion:ion-java:$ionVersion"
-
-    // using kotlin to make tests less verbose
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-
-    // JUnit 5
-    testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-}
-
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+}
+
+apply plugin: "me.champeau.gradle.jmh"
+jmh {
+    fork = 1
+    benchmarkMode = ["thrpt"]
+    failOnError = true
+
+    // warmup
+    warmupIterations = 3
+
+    // iterations
+    iterations = 10
 }
 
 apply plugin: 'checkstyle'
@@ -69,4 +74,17 @@ tasks.withType(Checkstyle) {
         xml.enabled = false
         html.enabled = true
     }
+}
+
+dependencies {
+    compile "software.amazon.ion:ion-java:$ionVersion"
+
+    // using kotlin to make tests less verbose
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+
+    // JUnit 5
+    testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 }

@@ -12,15 +12,15 @@ is inexpensive relative to the cost of parsing (and in the case of a DOM, materi
 
 ## Usage 
 Path extractor works in two phases: 
-1. Configuration 
+1. Configuration
 2. Notification  
 
 ### Search Paths
 A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of `PathComponent`s 
 which can be one of: 
-* Wildcard: matches all values
-* Index: match the value at that index 
-* Text: match all values whose field names are equivalent to that text
+* Wildcard: matches all values.
+* Index: match the value at that index.
+* Text: match all values whose field names are equivalent to that text.
 
 Some examples: 
 ```
@@ -80,9 +80,43 @@ pathExtractor.match(ionReader);
 assertEquals("[1, 2, 20]", list.toString());
 ```
 
+## Benchmark 
+
+Some benchmarks comparing the path extractor with fully materializing a DOM are included in this package. All benchmarks
+use as data source the JSON in https://data.nasa.gov/data.json, a publicly available data set from NASA. 
+
+The `dataset` struct from the original JSON is written as Ion binary and Ion text without any type coercion. The 
+binary file is ~81M and the text file ~95M. There are four benchmarks types: 
+1. `dom`: fully materializes a DOM for the file using an `IonLoader`. 
+1. `full`: fully materializes all struct fields as `IonValue`s using a path extractor.
+1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.
+1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
+
+There is a binary and a text version for all four benchmark types. See the `PathExtractorBenchmark` class for 
+more details.
+ 
+To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set. 
+Results bellow, higher is better. 
+
+```
+Benchmark                                   Mode  Cnt   Score   Error  Units
+PathExtractorBenchmark.domBinary           thrpt   10   1.128 ± 0.050  ops/s
+PathExtractorBenchmark.domText             thrpt   10   0.601 ± 0.019  ops/s
+PathExtractorBenchmark.fullBinary          thrpt   10   1.227 ± 0.014  ops/s
+PathExtractorBenchmark.fullText            thrpt   10   0.665 ± 0.010  ops/s
+PathExtractorBenchmark.partialBinary       thrpt   10  14.912 ± 0.271  ops/s
+PathExtractorBenchmark.partialBinaryNoDom  thrpt   10  15.650 ± 0.297  ops/s
+PathExtractorBenchmark.partialText         thrpt   10   1.343 ± 0.029  ops/s
+PathExtractorBenchmark.partialTextNoDom    thrpt   10   1.307 ± 0.015  ops/s
+```
+
+Using the path extractor has equivalent performance for both text and binary when fully materializing the document and 
+can give significant performance improvements when partially materializing binary documents. This happens due to Ion's 
+ability to skip scan values in the binary format as they are length prefixed. The gains will be proportional to how 
+much of the document can be skipped over.    
+
 ## Ion Developer information
 See the developer guide on: http://amzn.github.io/ion-docs/guides/path-extractor-guide.html
 
 ## License
-
 This library is licensed under the Apache 2.0 License. 
