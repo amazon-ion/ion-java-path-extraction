@@ -78,7 +78,7 @@ final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
 pathExtractor.match(ionReader);
 
 assertEquals("[1, 2, 20]", list.toString());
-```
+```pa
 
 ## Benchmark 
 
@@ -89,14 +89,14 @@ The `dataset` struct from the original JSON is written as Ion binary and Ion tex
 binary file is ~81M and the text file ~95M. There are four benchmarks types: 
 1. `dom`: fully materializes a DOM for the file using an `IonLoader`. 
 1. `full`: fully materializes all struct fields as `IonValue`s using a path extractor.
-1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.
+1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.a
 1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
 
 There is a binary and a text version for all four benchmark types. See the `PathExtractorBenchmark` class for 
 more details.
  
 To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set. 
-Results bellow, higher is better. 
+Results below, higher is better. 
 
 ```
 Benchmark                                   Mode  Cnt   Score   Error  Units

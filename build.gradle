@@ -55,7 +55,7 @@ jmh {
     failOnError = true
 
     // warmup
-    warmupIterations = 3
+    warmupIterations = 5
 
     // iterations
     iterations = 10

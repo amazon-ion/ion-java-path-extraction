@@ -40,7 +40,6 @@ import software.amazon.ionpathextraction.PathExtractorBuilder;
  * Benchmarks comparing the PathExtractor with fully materializing the DOM.
  */
 public class PathExtractorBenchmark {
-
     private static final IonSystem DOM_FACTORY = IonSystemBuilder.standard().build();
 
     private static IonReader newReader(final InputStream inputStream) {
@@ -66,25 +65,15 @@ public class PathExtractorBenchmark {
         try (
             final InputStream inputStream = url.openStream();
             final IonReader reader = newReader(inputStream);
-            final IonWriter writer = newBinaryWriter(binaryOut)
+            final IonWriter binaryWriter = newBinaryWriter(binaryOut)
         ) {
-            // all data is in the `dataset` key as a list, only write out that field to keep the extractor smaller
-            reader.next();
-            reader.stepIn();
-            while (reader.next() != null) {
-                if (reader.getFieldName().equals("dataset")) {
-                    reader.stepIn();
-                    writer.writeValues(reader);
-                    reader.stepOut();
-                }
-            }
-            reader.stepOut();
+            binaryWriter.writeValues(reader);
         }
 
         bytesBinary = binaryOut.toByteArray();
 
+        // text version. Writes from the binary memory buffer to avoid downloading the data twice
         final ByteArrayOutputStream textOut = new ByteArrayOutputStream();
-        // text version
         try (
             final InputStream inputStream = new ByteArrayInputStream(bytesBinary);
             final IonReader reader = newReader(inputStream);
@@ -96,9 +85,7 @@ public class PathExtractorBenchmark {
         bytesText = textOut.toByteArray();
     }
 
-    /**
-     * sets up shared test data once.
-     */
+    // sets up shared test data once.
     static {
         try {
             setupTestData();
@@ -124,22 +111,26 @@ public class PathExtractorBenchmark {
                     DOM_FACTORY.newValue(reader);
                     return 0;
                 },
+                "(@context)",
                 "(@type)",
-                "(accessLevel)",
-                "(accrualPeriodicity)",
-                "(bureauCode)",
-                "(contactPoint)",
-                "(description)",
-                "(distribution)",
-                "(identifier)",
-                "(issued)",
-                "(keyword)",
-                "(landingPage)",
-                "(modified)",
-                "(programCode)",
-                "(publisher)",
-                "(title)",
-                "(license)"
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * @type)",
+                "(dataset * accessLevel)",
+                "(dataset * accrualPeriodicity)",
+                "(dataset * bureauCode)",
+                "(dataset * contactPoint)",
+                "(dataset * description)",
+                "(dataset * distribution)",
+                "(dataset * identifier)",
+                "(dataset * issued)",
+                "(dataset * keyword)",
+                "(dataset * landingPage)",
+                "(dataset * modified)",
+                "(dataset * programCode)",
+                "(dataset * publisher)",
+                "(dataset * title)",
+                "(dataset * license)"
             );
 
             pathExtractorPartial = makePathExtractor(reader -> {
@@ -147,15 +138,23 @@ public class PathExtractorBenchmark {
                     DOM_FACTORY.newValue(reader);
                     return 0;
                 },
-                "(accessLevel)"
+                "(@context)",
+                "(@type)",
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * accessLevel)"
             );
 
             pathExtractorPartialNoDom = makePathExtractor(reader -> {
                     // reads the value without materializing a DOM object
-                    reader.stringValue(); // accessLevel is a string
+                    reader.stringValue(); // all matched paths are strings
                     return 0;
                 },
-                "(accessLevel)"
+                "(@context)",
+                "(@type)",
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * accessLevel)"
             );
         }
 
