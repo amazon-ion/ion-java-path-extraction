@@ -1,28 +1,32 @@
 ## Ion Java Path Extraction
 
+[![Build Status](https://travis-ci.org/amzn/ion-java-path-extraction.svg?branch=master)](https://travis-ci.org/amzn/ion-java-path-extraction)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction/badge.svg)](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction)
+[![Javadoc](https://javadoc-badge.appspot.com/software.amazon.ion/ion-java-path-extraction.svg?label=javadoc)](http://www.javadoc.io/doc/software.amazon.ion/ion-java-path-extraction)
+
 Ion Path Extraction API aims to combine the convenience of a DOM API with the speed of a streaming API.
 
-The traditional streaming and DOM APIs force the user to choose between speed and convenience, respectively. 
-Path extraction APIs aim to combine the two by allowing the user to register paths into the data using just a 
-few lines of code and receive callbacks during stream processing when any of those paths is matched. This allows 
-the Ion reader to plan the most efficient traversal over the data without requiring further manual interaction 
-from the user. For example, there is no reason to step in to containers which could not possibly match one of 
-the search paths. When encoded in binary Ion, the resulting skip is a seek forward in the input stream, which 
+The traditional streaming and DOM APIs force the user to choose between speed and convenience, respectively.
+Path extraction APIs aim to combine the two by allowing the user to register paths into the data using just a
+few lines of code and receive callbacks during stream processing when any of those paths is matched. This allows
+the Ion reader to plan the most efficient traversal over the data without requiring further manual interaction
+from the user. For example, there is no reason to step in to containers which could not possibly match one of
+the search paths. When encoded in binary Ion, the resulting skip is a seek forward in the input stream, which
 is inexpensive relative to the cost of parsing (and in the case of a DOM, materializing) the skipped value.
 
-## Usage 
-Path extractor works in two phases: 
+## Usage
+Path extractor works in two phases:
 1. Configuration
-2. Notification  
+2. Notification
 
 ### Search Paths
-A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of `PathComponent`s 
-which can be one of: 
+A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of `PathComponent`s
+which can be one of:
 * Wildcard: matches all values.
 * Index: match the value at that index.
 * Text: match all values whose field names are equivalent to that text.
 
-Some examples: 
+Some examples:
 ```
 data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue"}
 
@@ -32,27 +36,27 @@ data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue"}
 ()      - matches {foo: ["foo1", "foo2"] , bar: "myBarValue"}
 ```
 
-### Configuration  
-The configuration phase involves building a `PathExtractor` instance through the `PathExtractorBuilder` by setting its 
+### Configuration
+The configuration phase involves building a `PathExtractor` instance through the `PathExtractorBuilder` by setting its
 configuration options and registering its search paths. The built `PathExtractor` can be reused over many `IonReader`s.
 
-example: 
+example:
 
-```java 
+```java
 PathExtractorBuilder.standard()
-                    .withMatchCaseInsensitive(true) 
+                    .withMatchCaseInsensitive(true)
                     .withSearchPath("(foo)", (reader) -> { ... })
                     .build()
-``` 
+```
 
-see `PathExtractorBuilder` javadoc for more information on configuration options and search path registration. 
+see `PathExtractorBuilder` javadoc for more information on configuration options and search path registration.
 
-### Notification  
-Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective 
-callback passing the reader positioned at the current value. See `PathExtractorBuilder#withSearchPath` methods for more 
+### Notification
+Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective
+callback passing the reader positioned at the current value. See `PathExtractorBuilder#withSearchPath` methods for more
 information on the callback contract.
 
-### Example: 
+### Example:
 
 ```java
 // Capture all matched values into a List
@@ -80,23 +84,23 @@ pathExtractor.match(ionReader);
 assertEquals("[1, 2, 20]", list.toString());
 ```
 
-## Benchmark 
+## Benchmark
 
 Some benchmarks comparing the path extractor with fully materializing a DOM are included in this package. All benchmarks
-use as data source the JSON in https://data.nasa.gov/data.json, a publicly available data set from NASA. 
+use as data source the JSON in https://data.nasa.gov/data.json, a publicly available data set from NASA.
 
-The `dataset` struct from the original JSON is written as Ion binary and Ion text without any type coercion. The 
-binary file is ~81M and the text file ~95M. There are four benchmarks types: 
-1. `dom`: fully materializes a DOM for the file using an `IonLoader`. 
+The `dataset` struct from the original JSON is written as Ion binary and Ion text without any type coercion. The
+binary file is ~81M and the text file ~95M. There are four benchmarks types:
+1. `dom`: fully materializes a DOM for the file using an `IonLoader`.
 1. `full`: fully materializes all struct fields as `IonValue`s using a path extractor.
 1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.a
 1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
 
-There is a binary and a text version for all four benchmark types. See the `PathExtractorBenchmark` class for 
+There is a binary and a text version for all four benchmark types. See the `PathExtractorBenchmark` class for
 more details.
- 
-To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set. 
-Results below, higher is better. 
+
+To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set.
+Results below, higher is better.
 
 ```
 Benchmark                                   Mode  Cnt   Score   Error  Units
@@ -110,13 +114,13 @@ PathExtractorBenchmark.partialText         thrpt   10   1.343 ± 0.029  ops/s
 PathExtractorBenchmark.partialTextNoDom    thrpt   10   1.307 ± 0.015  ops/s
 ```
 
-Using the path extractor has equivalent performance for both text and binary when fully materializing the document and 
-can give significant performance improvements when partially materializing binary documents. This happens due to Ion's 
-ability to skip scan values in the binary format as they are length prefixed. The gains will be proportional to how 
-much of the document can be skipped over.    
+Using the path extractor has equivalent performance for both text and binary when fully materializing the document and
+can give significant performance improvements when partially materializing binary documents. This happens due to Ion's
+ability to skip scan values in the binary format as they are length prefixed. The gains will be proportional to how
+much of the document can be skipped over.
 
 ## Ion Developer information
 See the developer guide on: http://amzn.github.io/ion-docs/guides/path-extractor-guide.html
 
 ## License
-This library is licensed under the Apache 2.0 License. 
+This library is licensed under the Apache 2.0 License.
