@@ -12,9 +12,9 @@
  */
 
 buildscript {
-    ext.ionVersion = "1.2.+"
-    ext.kotlin_version = "1.2.+"
-    ext.junitVersion = "5.3.+"
+    ext.ionVersion = "[1.2,)" 
+    ext.kotlin_version = "[1.2,)"
+    ext.junitVersion = "[5.3,)"
 
     repositories {
         mavenCentral()
@@ -38,13 +38,13 @@ apply plugin: 'checkstyle'
 apply plugin: "me.champeau.gradle.jmh"
 
 // Deployment
-apply plugin: 'maven'
-apply plugin: 'signing'
+apply plugin: "maven-publish"  
+apply plugin: "signing"
 
 
 group 'software.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
-version '1.0-SNAPSHOT'
+version '1.0.0'
 
 sourceCompatibility = 1.8
 
@@ -80,6 +80,9 @@ tasks.withType(Checkstyle) {
     }
 }
 
+// Publishing
+// -------------------------------------------------------------------------------
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allJava
@@ -90,40 +93,20 @@ task javadocJar(type: Jar) {
     from javadoc.destinationDir
 }
 
-artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
-}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "ion-java-path-extraction"
+            
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
 
-signing {
-    sign configurations.archives
-}
-
-// Only signs artifacts when releasing  
-tasks.withType(Sign) {
-    onlyIf { gradle.taskGraph.hasTask("uploadArchives") }
-}
-
-// based on https://central.sonatype.org/pages/gradle.html
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
+            pom {
                 name = "Ion Java Path Extraction"
                 packaging = "jar"
                 url = "https://github.com/amzn/ion-java-path-extraction"
-
+                description = "Ion Path Extraction API aims to combine the convenience of a DOM API with the speed of a streaming API."
                 scm {
                     connection = "scm:git@github.com:amzn/ion-java-path-extraction.git"
                     developerConnection = "scm:git@github.com:amzn/ion-java-path-extraction.git"
@@ -148,7 +131,22 @@ uploadArchives {
             }
         }
     }
+    repositories {
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
 }
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+// Dependencies --------------------------------------------------------------
 
 repositories {
     mavenCentral()
