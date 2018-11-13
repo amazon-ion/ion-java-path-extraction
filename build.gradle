@@ -44,7 +44,7 @@ apply plugin: "signing"
 
 group 'software.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
-version '1.0.1-SNAPSHOT'
+version '1.0.1'
 
 sourceCompatibility = 1.8
 
