@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/amzn/ion-java-path-extraction.svg?branch=master)](https://travis-ci.org/amzn/ion-java-path-extraction)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction/badge.svg)](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction)
-[![Javadoc](https://javadoc-badge.appspot.com/software.amazon.ion/ion-java-path-extraction.svg?label=javadoc)](http://www.javadoc.io/doc/software.amazon.ion/ion-java-path-extraction)
+[![Javadocs](https://www.javadoc.io/badge/software.amazon.ion/ion-java-path-extraction.svg)](https://www.javadoc.io/doc/software.amazon.ion/ion-java-path-extraction)
 
 Ion Path Extraction API aims to combine the convenience of a DOM API with the speed of a streaming API.
 
