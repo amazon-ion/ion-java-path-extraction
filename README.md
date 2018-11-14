@@ -20,7 +20,7 @@ Path extractor works in two phases:
 2. Notification
 
 ### Search Paths
-A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of `PathComponent`s
+A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of [PathComponent](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/pathcomponents/PathComponent.html)s
 which can be one of:
 * Wildcard: matches all values.
 * Index: match the value at that index.
@@ -49,7 +49,7 @@ PathExtractorBuilder.standard()
                     .build()
 ```
 
-see `PathExtractorBuilder` javadoc for more information on configuration options and search path registration.
+see PathExtractorBuilder [javadoc](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/PathExtractorBuilder.html) for more information on configuration options and search path registration.
 
 ### Notification
 Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective
@@ -84,6 +84,8 @@ pathExtractor.match(ionReader);
 assertEquals("[1, 2, 20]", list.toString());
 ```
 
+`PathExtractorBuilder#withSearchPath` [javadoc](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/PathExtractorBuilder.html#withSearchPath-java.lang.String-java.util.function.Function-)
+
 ## Benchmark
 
 Some benchmarks comparing the path extractor with fully materializing a DOM are included in this package. All benchmarks
@@ -96,7 +98,7 @@ binary file is ~81M and the text file ~95M. There are four benchmarks types:
 1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.a
 1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
 
-There is a binary and a text version for all four benchmark types. See the `PathExtractorBenchmark` class for
+There is a binary and a text version for all four benchmark types. See the [PathExtractorBenchmark](https://github.com/amzn/ion-java-path-extraction/blob/master/src/jmh/java/software/amazon/ionpathextraction/benchmarks/PathExtractorBenchmark.java) class for
 more details.
 
 To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set.
