@@ -17,6 +17,7 @@ import static software.amazon.ionpathextraction.utils.Preconditions.checkArgumen
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import software.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
@@ -24,11 +25,12 @@ import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 /**
  * {@link PathExtractor} builder.
  */
-public final class PathExtractorBuilder {
+public final class PathExtractorBuilder<T> {
 
     private static final boolean DEFAULT_MATCH_RELATIVE_PATHS = false;
     private static final boolean DEFAULT_CASE_INSENSITIVE = false;
-    private final List<SearchPath> searchPaths = new ArrayList<>();
+
+    private final List<SearchPath<T>> searchPaths = new ArrayList<>();
     private boolean matchRelativePaths;
     private boolean matchCaseInsensitive;
 
@@ -40,8 +42,8 @@ public final class PathExtractorBuilder {
      *
      * @return new standard builder instance.
      */
-    public static PathExtractorBuilder standard() {
-        PathExtractorBuilder builder = new PathExtractorBuilder();
+    public static <T> PathExtractorBuilder<T> standard() {
+        PathExtractorBuilder<T> builder = new PathExtractorBuilder<>();
         builder.matchCaseInsensitive = DEFAULT_CASE_INSENSITIVE;
         builder.matchRelativePaths = DEFAULT_MATCH_RELATIVE_PATHS;
 
@@ -49,12 +51,12 @@ public final class PathExtractorBuilder {
     }
 
     /**
-     * Instantiates a {@link PathExtractor} configured by this builder.
+     * Instantiates a thread safe {@link PathExtractor} configured by this builder.
      *
      * @return new {@link PathExtractor} instance.
      */
-    public PathExtractor build() {
-        return new PathExtractorImpl(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive));
+    public PathExtractor<T> build() {
+        return new PathExtractorImpl<>(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive));
     }
 
     /**
@@ -67,7 +69,7 @@ public final class PathExtractorBuilder {
      * @param matchRelativePaths new config value.
      * @return builder for chaining.
      */
-    public PathExtractorBuilder withMatchRelativePaths(final boolean matchRelativePaths) {
+    public PathExtractorBuilder<T> withMatchRelativePaths(final boolean matchRelativePaths) {
         this.matchRelativePaths = matchRelativePaths;
 
         return this;
@@ -83,7 +85,7 @@ public final class PathExtractorBuilder {
      * @param matchCaseInsensitive new config value.
      * @return builder for chaining.
      */
-    public PathExtractorBuilder withMatchCaseInsensitive(final boolean matchCaseInsensitive) {
+    public PathExtractorBuilder<T> withMatchCaseInsensitive(final boolean matchCaseInsensitive) {
         this.matchCaseInsensitive = matchCaseInsensitive;
 
         return this;
@@ -95,14 +97,47 @@ public final class PathExtractorBuilder {
      * @param searchPathAsIon string representation of a search path.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#withSearchPath(List, Function)
+     * @see PathExtractorBuilder#withSearchPath(List, BiFunction)
      */
-    public PathExtractorBuilder withSearchPath(final String searchPathAsIon,
-                                               final Function<IonReader, Integer> callback) {
+    public PathExtractorBuilder<T> withSearchPath(final String searchPathAsIon,
+                                                  final Function<IonReader, Integer> callback) {
+        checkArgument(callback != null, "callback cannot be null");
+
+        withSearchPath(searchPathAsIon, (reader, t) -> callback.apply(reader));
+
+        return this;
+    }
+
+    /**
+     * Register a callback for a search path.
+     *
+     * @param searchPathAsIon string representation of a search path.
+     * @param callback callback to be registered.
+     * @return builder for chaining.
+     * @see PathExtractorBuilder#withSearchPath(List, BiFunction)
+     */
+    public PathExtractorBuilder<T> withSearchPath(final String searchPathAsIon,
+                                                  final BiFunction<IonReader, T, Integer> callback) {
         checkArgument(searchPathAsIon != null, "searchPathAsIon cannot be null");
 
         List<PathComponent> pathComponents = PathComponentParser.parse(searchPathAsIon);
         withSearchPath(pathComponents, callback);
+
+        return this;
+    }
+
+    /**
+     * Register a callback for a search path.
+     *
+     * @param pathComponents search path as a list of path components.
+     * @param callback callback to be registered.
+     * @return builder for chaining.
+     */
+    public PathExtractorBuilder<T> withSearchPath(final List<PathComponent> pathComponents,
+                                                  final Function<IonReader, Integer> callback) {
+        checkArgument(callback != null, "callback cannot be null");
+
+        withSearchPath(pathComponents, (reader, t) -> callback.apply(reader));
 
         return this;
     }
@@ -145,14 +180,13 @@ public final class PathExtractorBuilder {
      * @param pathComponents search path as a list of path components.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#withSearchPath(String, Function)
      */
-    public PathExtractorBuilder withSearchPath(final List<PathComponent> pathComponents,
-                                               final Function<IonReader, Integer> callback) {
+    public PathExtractorBuilder<T> withSearchPath(final List<PathComponent> pathComponents,
+                                                  final BiFunction<IonReader, T, Integer> callback) {
         checkArgument(pathComponents != null, "pathComponents cannot be null");
         checkArgument(callback != null, "callback cannot be null");
 
-        searchPaths.add(new SearchPath(pathComponents, callback));
+        searchPaths.add(new SearchPath<>(pathComponents, callback));
 
         return this;
     }

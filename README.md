@@ -59,15 +59,16 @@ information on the callback contract.
 ### Example:
 
 ```java
-// Capture all matched values into a List
-final List<Integer> list = new ArrayList<>();
-final Function<IonReader, Integer> callback = (reader) -> {
-    list.add(reader.intValue());
+// Adds matched values
+final AtomicLong counter = new AtomicLong(0);
 
-    return 0; // See PathExtractorBuilder#withSearchPath javadoc for more details on the callback contract
+final Function<IonReader, Integer> callback = (reader) -> {
+    counter.addAndGet(reader.intValue());
+
+    return 0;
 };
 
-final PathExtractor pathExtractor = PathExtractorBuilder.standard()
+final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
     .withSearchPath("(foo)", callback)
     .withSearchPath("(bar)", callback)
     .withSearchPath("(baz 1)", callback)
@@ -80,6 +81,32 @@ final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
 );
 
 pathExtractor.match(ionReader);
+
+assertEquals(23, counter.get());
+```
+
+```java
+// accumulates matched paths into a list
+final BiFunction<IonReader, List<Integer>, Integer> callback = (reader, list) -> {
+    list.add(reader.intValue());
+
+    return 0;
+};
+
+final PathExtractor<List<Integer>> pathExtractor = PathExtractorBuilder.<List<Integer>>standard()
+        .withSearchPath("(foo)", callback)
+        .withSearchPath("(bar)", callback)
+        .withSearchPath("(baz 1)", callback)
+        .build();
+
+final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
+        + "{bar: 2}"
+        + "{baz: [10,20,30,40]}"
+        + "{other: 99}"
+);
+
+final List<Integer> list = new ArrayList<>();
+pathExtractor.match(ionReader, list);
 
 assertEquals("[1, 2, 20]", list.toString());
 ```

@@ -32,7 +32,7 @@ import software.amazon.ion.IonReader;
  * <strong>WARNING:</strong>Implementations of this interface are not required to be Thread safe
  * </p>
  */
-public interface PathExtractor {
+public interface PathExtractor<T> {
 
     /**
      * Iterates over the reader looking for registered search paths, when a match is found invokes the respective
@@ -41,4 +41,13 @@ public interface PathExtractor {
      * @param reader {@link IonReader} to process.
      */
     void match(final IonReader reader);
+
+    /**
+     * Iterates over the reader looking for registered search paths, when a match is found invokes the respective
+     * callback.
+     *
+     * @param reader {@link IonReader} to process.
+     * @param context context passed in to callback functions.
+     */
+    void match(final IonReader reader, final T context);
 }

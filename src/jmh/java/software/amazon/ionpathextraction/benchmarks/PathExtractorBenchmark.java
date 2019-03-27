@@ -100,9 +100,9 @@ public class PathExtractorBenchmark {
     @State(Scope.Thread)
     public static class ThreadState {
 
-        PathExtractor pathExtractor;
-        PathExtractor pathExtractorPartial;
-        PathExtractor pathExtractorPartialNoDom;
+        PathExtractor<?> pathExtractor;
+        PathExtractor<?> pathExtractorPartial;
+        PathExtractor<?> pathExtractorPartialNoDom;
 
         @Setup(Level.Trial)
         public void setup() throws Exception {
@@ -158,9 +158,9 @@ public class PathExtractorBenchmark {
             );
         }
 
-        private PathExtractor makePathExtractor(final Function<IonReader, Integer> callback,
-                                                final String... searchPaths) {
-            final PathExtractorBuilder builder = PathExtractorBuilder.standard();
+        private PathExtractor<?> makePathExtractor(final Function<IonReader, Integer> callback,
+                                                   final String... searchPaths) {
+            final PathExtractorBuilder<?> builder = PathExtractorBuilder.standard();
             Stream.of(searchPaths).forEach(sp -> builder.withSearchPath(sp, callback));
             return builder.build();
         }
