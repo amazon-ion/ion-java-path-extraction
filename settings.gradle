@@ -12,5 +12,4 @@
  */
 
 rootProject.name = 'ion-java-path-extraction'
-enableFeaturePreview('STABLE_PUBLISHING') // gradle 5.0 compatibility
 

@@ -32,7 +32,7 @@
   </module>
 
   <module name="Header">
-    <property name="headerFile" value="config/checkstyle/copyright-header" />
+    <property name="headerFile" value="${config_loc}/copyright-header" />
     <property name="fileExtensions" value="java,kt" />
   </module>
 
