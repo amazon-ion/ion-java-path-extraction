@@ -12,7 +12,7 @@
  */
 
 buildscript {
-    ext.ionVersion = "[1.2,)" 
+    ext.ionVersion = "[1.2,)"
     ext.kotlin_version = "[1.2,)"
     ext.junitVersion = "[5.3,)"
 
@@ -30,16 +30,18 @@ buildscript {
     }
 }
 
-apply plugin: "java"
-apply plugin: "kotlin"
-apply plugin: 'checkstyle'
+plugins {
+    id "java"
+    id "checkstyle"
+    id "org.jetbrains.kotlin.jvm" version "1.3.21"
 
-// benchmark
-apply plugin: "me.champeau.gradle.jmh"
+    // benchmark
+    id "me.champeau.gradle.jmh" version "0.4.8"
 
-// Deployment
-apply plugin: "maven-publish"  
-apply plugin: "signing"
+    // Deployment
+    id "maven-publish"
+    id "signing"
+}
 
 
 group 'software.amazon.ion'
@@ -97,7 +99,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = "ion-java-path-extraction"
-            
+
             from components.java
             artifact sourcesJar
             artifact javadocJar
