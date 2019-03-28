@@ -29,7 +29,7 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  *  (bar baz)  | [1]
  * </pre>
  */
-public class Text implements PathComponent {
+public final class Text implements PathComponent {
 
     private final String fieldName;
 

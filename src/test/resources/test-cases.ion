@@ -244,3 +244,15 @@ search paths
 { searchPaths: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
 
 { searchPaths: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
+
+// With annotations ----------------------------------------------------------------------
+{ searchPaths: [((* annotatedWith A))], data: [A::1, 2], expected: [A::1] }
+{ searchPaths: [((* annotatedWith A B C))], data: [A::B::C::1, B::A::C::2], expected: [A::B::C::1] }
+{
+  searchPaths: [(foo (2 annotatedWith A) bar)],
+  data: {
+    foo: [0, 1, A::{bar: 1}],
+    foo: [0, 1, {bar: 2}]
+  },
+  expected: [1]
+}

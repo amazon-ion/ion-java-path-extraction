@@ -13,7 +13,7 @@
 
 package software.amazon.ionpathextraction;
 
-public class PathExtractorConfig {
+public final class PathExtractorConfig {
 
     private final boolean matchRelativePaths;
     private final boolean matchCaseInsensitive;

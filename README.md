@@ -25,15 +25,17 @@ which can be one of:
 * Wildcard: matches all values.
 * Index: match the value at that index.
 * Text: match all values whose field names are equivalent to that text.
-
+* Annotations: matches values specified by a wrapped path component with the given annotations.
 Some examples:
 ```
-data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue"}
+data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
 
-(foo 0) - matches "foo1"
-(1)     - matches "myBarValue"
-(*)     - matches ["foo1", "foo2"] and "myBarValue"
-()      - matches {foo: ["foo1", "foo2"] , bar: "myBarValue"}
+(foo 0)                     - matches "foo1"
+(1)                         - matches "myBarValue"
+(*)                         - matches ["foo1", "foo2"], "myBarValue" and A::"annotatedValue"
+()                          - matches {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
+(foo bar)                   - matches "myBarValue" and A::"annotatedValue"
+(foo (bar annotatedWith A)) - matches A::"annotatedValue"
 ```
 
 ### Configuration
@@ -71,13 +73,14 @@ final Function<IonReader, Integer> callback = (reader) -> {
 final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
     .withSearchPath("(foo)", callback)
     .withSearchPath("(bar)", callback)
-    .withSearchPath("(baz 1)", callback)
+    .withSearchPath("((baz annotatedWith A) 1)", callback)
     .build();
 
 final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
-        + "{bar: 2}"
-        + "{baz: [10,20,30,40]}"
-        + "{other: 99}"
+    + "{bar: 2}"
+    + "{baz: A::[10,20,30,40]}"
+    + "{baz: [100,200,300,400]}"
+    + "{other: 99}"
 );
 
 pathExtractor.match(ionReader);
@@ -94,15 +97,16 @@ final BiFunction<IonReader, List<Integer>, Integer> callback = (reader, list) ->
 };
 
 final PathExtractor<List<Integer>> pathExtractor = PathExtractorBuilder.<List<Integer>>standard()
-        .withSearchPath("(foo)", callback)
-        .withSearchPath("(bar)", callback)
-        .withSearchPath("(baz 1)", callback)
-        .build();
+    .withSearchPath("(foo)", callback)
+    .withSearchPath("(bar)", callback)
+    .withSearchPath("((baz annotatedWith A) 1)", callback)
+    .build();
 
 final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
-        + "{bar: 2}"
-        + "{baz: [10,20,30,40]}"
-        + "{other: 99}"
+    + "{bar: 2}"
+    + "{baz: A::[10,20,30,40]}"
+    + "{baz: [100,200,300,400]}"
+    + "{other: 99}"
 );
 
 final List<Integer> list = new ArrayList<>();

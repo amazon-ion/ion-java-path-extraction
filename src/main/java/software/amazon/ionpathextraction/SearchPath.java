@@ -13,19 +13,16 @@
 
 package software.amazon.ionpathextraction;
 
-import java.math.MathContext;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import software.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
-
 
 
 /**
  * A path which is provided to the extractor for matching.
  */
-class SearchPath<T> {
+final class SearchPath<T> {
 
     private final List<PathComponent> pathComponents;
     private final BiFunction<IonReader, T, Integer> callback;

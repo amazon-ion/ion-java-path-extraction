@@ -32,7 +32,7 @@ import software.amazon.ionpathextraction.pathcomponents.PathComponent;
  * This implementation is thread safe.
  * </p>
  */
-class PathExtractorImpl<T> implements PathExtractor<T> {
+final class PathExtractorImpl<T> implements PathExtractor<T> {
 
     private final PathExtractorConfig config;
     private final List<SearchPath<T>> searchPaths;

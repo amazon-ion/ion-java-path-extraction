@@ -27,7 +27,7 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  *  (* *)      | 1, 2, 3 and [1]
  * </pre>
  */
-public class Wildcard implements PathComponent {
+public final class Wildcard implements PathComponent {
 
     public static final String TEXT = "*";
 

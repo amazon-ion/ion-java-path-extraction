@@ -24,21 +24,22 @@ import software.amazon.ion.IonWriter;
 import software.amazon.ion.system.IonReaderBuilder;
 import software.amazon.ion.system.IonTextWriterBuilder;
 import software.amazon.ionpathextraction.exceptions.PathExtractionException;
+import software.amazon.ionpathextraction.pathcomponents.AnnotatedPathComponent;
 import software.amazon.ionpathextraction.pathcomponents.Index;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ionpathextraction.pathcomponents.Text;
 import software.amazon.ionpathextraction.pathcomponents.Wildcard;
-import software.amazon.ionpathextraction.utils.Preconditions;
 
 /**
  * Parses a search path ion expression into {@link PathComponent}s.
  */
-class PathComponentParser {
+final class PathComponentParser {
 
     private static final IonReaderBuilder READER_BUILDER = IonReaderBuilder.standard();
     private static final IonTextWriterBuilder WRITER_BUILDER = IonTextWriterBuilder.standard();
 
     private static final String WILDCARD_ESCAPE_ANNOTATION = "$ion_extractor_field";
+    private static final String ANNOTATED_PATH_COMPONENT_TAG = "annotatedWith";
 
     // only has static methods, should not be invoked
     private PathComponentParser() {
@@ -65,26 +66,76 @@ class PathComponentParser {
         final List<PathComponent> pathComponents = new ArrayList<>();
 
         while (reader.next() != null) {
-            switch (reader.getType()) {
-                case INT:
-                    pathComponents.add(new Index(reader.intValue()));
-                    break;
-
-                case STRING:
-                case SYMBOL:
-                    if (isWildcard(reader)) {
-                        pathComponents.add(Wildcard.INSTANCE);
-                    } else {
-                        pathComponents.add(new Text(reader.stringValue()));
-                    }
-                    break;
-
-                default:
-                    throw new PathExtractionException("Invalid path component type: " + readIonText(reader));
-            }
+            pathComponents.add(readComponent(reader));
         }
 
         return pathComponents;
+    }
+
+    private static PathComponent readComponent(final IonReader reader) {
+        switch (reader.getType()) {
+            case SEXP:
+            case LIST:
+                return readAnnotatedPathComponent(reader);
+
+            case INT:
+                return new Index(reader.intValue());
+
+            case STRING:
+            case SYMBOL:
+                if (isWildcard(reader)) {
+                    return Wildcard.INSTANCE;
+                }
+                return new Text(reader.stringValue());
+
+            default:
+                throw new PathExtractionException("Invalid path component type: " + readIonText(reader));
+        }
+    }
+
+    private static PathComponent readAnnotatedPathComponent(final IonReader reader) {
+        reader.stepIn();
+
+        checkArgument(reader.next() != null, "Invalid empty wrapped matcher");
+        final PathComponent wrappedPathComponent = readComponent(reader);
+
+        checkArgument(reader.next() != null, "Wrapped matcher must have a tag");
+        final String wrapperType = readText(reader);
+        checkArgument(ANNOTATED_PATH_COMPONENT_TAG.equals(wrapperType), "Unknown wrapped matcher tag: " + wrapperType);
+
+        final List<String> annotations = new ArrayList<>();
+        while (reader.next() != null) {
+            final String annotation = readText(reader);
+            annotations.add(annotation);
+        }
+
+        checkArgument(annotations.size() > 0, "annotatedWith wrapped matchers must have at least one annotation");
+
+        AnnotatedPathComponent annotatedPathComponent = new AnnotatedPathComponent(annotations.toArray(new String[0]),
+            wrappedPathComponent);
+
+        reader.stepOut();
+        return annotatedPathComponent;
+    }
+
+    private static boolean isWildcard(final IonReader reader) {
+        if (reader.stringValue().equals(Wildcard.TEXT)) {
+            final String[] annotations = reader.getTypeAnnotations();
+            return annotations.length == 0 || !WILDCARD_ESCAPE_ANNOTATION.equals(annotations[0]);
+        }
+        return false;
+    }
+
+    private static String readText(final IonReader reader) {
+        switch (reader.getType()) {
+            case SYMBOL:
+            case STRING:
+                return reader.stringValue();
+
+            default:
+                throw new PathExtractionException("Invalid reader type, expecting String or Symbol got: "
+                    + reader.getType());
+        }
     }
 
     private static String readIonText(final IonReader reader) {
@@ -95,14 +146,6 @@ class PathComponentParser {
             throw new PathExtractionException(e);
         }
         return out.toString();
-    }
-
-    private static boolean isWildcard(final IonReader reader) {
-        if (reader.stringValue().equals(Wildcard.TEXT)) {
-            final String[] annotations = reader.getTypeAnnotations();
-            return annotations.length == 0 || !WILDCARD_ESCAPE_ANNOTATION.equals(annotations[0]);
-        }
-        return false;
     }
 
     private static IonReader newIonReader(final String ionText) {

@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.Test;
-import software.amazon.ion.IonList;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.system.IonReaderBuilder;
 
@@ -43,13 +42,14 @@ public class ExampleTest {
         final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
             .withSearchPath("(foo)", callback)
             .withSearchPath("(bar)", callback)
-            .withSearchPath("(baz 1)", callback)
+            .withSearchPath("((baz annotatedWith A) 1)", callback)
             .build();
 
         final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
-                + "{bar: 2}"
-                + "{baz: [10,20,30,40]}"
-                + "{other: 99}"
+            + "{bar: 2}"
+            + "{baz: A::[10,20,30,40]}"
+            + "{baz: [100,200,300,400]}"
+            + "{other: 99}"
         );
 
         pathExtractor.match(ionReader);
@@ -67,15 +67,16 @@ public class ExampleTest {
         };
 
         final PathExtractor<List<Integer>> pathExtractor = PathExtractorBuilder.<List<Integer>>standard()
-                .withSearchPath("(foo)", callback)
-                .withSearchPath("(bar)", callback)
-                .withSearchPath("(baz 1)", callback)
-                .build();
+            .withSearchPath("(foo)", callback)
+            .withSearchPath("(bar)", callback)
+            .withSearchPath("((baz annotatedWith A) 1)", callback)
+            .build();
 
         final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
-                + "{bar: 2}"
-                + "{baz: [10,20,30,40]}"
-                + "{other: 99}"
+            + "{bar: 2}"
+            + "{baz: A::[10,20,30,40]}"
+            + "{baz: [100,200,300,400]}"
+            + "{other: 99}"
         );
 
         final List<Integer> list = new ArrayList<>();

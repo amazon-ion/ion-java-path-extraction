@@ -27,7 +27,7 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  *  (0 2)      | 3
  * </pre>
  */
-public class Index implements PathComponent {
+public final class Index implements PathComponent {
 
     private final int ordinal;
 
