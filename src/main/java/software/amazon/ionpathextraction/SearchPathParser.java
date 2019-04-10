@@ -32,7 +32,7 @@ import software.amazon.ionpathextraction.pathcomponents.Text;
 import software.amazon.ionpathextraction.pathcomponents.Wildcard;
 
 /**
- * Parses a search path ion expression into a {@link PathComponentSearchPath}s.
+ * Parses a search path ion expression into a {@link SearchPath}s.
  */
 final class SearchPathParser {
 
