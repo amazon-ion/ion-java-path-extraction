@@ -52,7 +52,6 @@ class PathExtractorTest {
                 ION.loader.load(File("src/test/resources/test-cases.ion"))
                         .map { it as IonStruct }
                         .map { struct ->
-
                             // single
                             val searchPaths = if (struct.containsKey("searchPath")) {
                                 listOf(struct["searchPath"].toText())
@@ -90,7 +89,7 @@ class PathExtractorTest {
         val out = ION.newEmptyList()
         extractor.match(ION.newReader(testCase.data), out)
 
-        assertEquals(testCase.expected, out)
+        assertEquals(testCase.expected, out, testCase.toString())
     }
 
     @Test
@@ -270,61 +269,5 @@ class PathExtractorTest {
         }
 
         assertEquals("ionPathExpression must be a s-expression or list", exception.message)
-    }
-
-    // Invalid matcher -----------------------------------------------------------------------------------
-
-    @Test
-    fun annotationSearchPathNoAnnotations() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( (foo annotatedWith) )", emptyCallback)
-        }
-
-        assertEquals("annotatedWith wrapped matchers must have at least one annotation", exception.message)
-    }
-
-    @Test
-    fun annotationSearchPathWrongAnnotationType() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( (foo annotatedWith 1) )", emptyCallback)
-        }
-
-        assertEquals("Invalid reader type, expecting String or Symbol got: INT", exception.message)
-    }
-
-    @Test
-    fun wrappedSearchPathNoTag() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( (foo) )", emptyCallback)
-        }
-
-        assertEquals("Wrapped matcher must have a tag", exception.message)
-    }
-
-    @Test
-    fun wrappedSearchUnknownTag() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( (foo iDoNotExist) )", emptyCallback)
-        }
-
-        assertEquals("Unknown wrapped matcher tag: iDoNotExist", exception.message)
-    }
-
-    @Test
-    fun wrappedSearchPathEmpty() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( () )", emptyCallback)
-        }
-
-        assertEquals("Invalid empty wrapped matcher", exception.message)
-    }
-
-    @Test
-    fun wrappedSearchPathTagNotText() {
-        val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath("( (foo 1) )", emptyCallback)
-        }
-
-        assertEquals("Invalid reader type, expecting String or Symbol got: INT", exception.message)
     }
 }

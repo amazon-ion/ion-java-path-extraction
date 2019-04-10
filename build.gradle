@@ -43,7 +43,6 @@ plugins {
     id "signing"
 }
 
-
 group 'software.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
 version '1.2.0-SNAPSHOT'
@@ -54,6 +53,10 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jmh {
@@ -81,8 +84,6 @@ tasks.withType(Checkstyle) {
         html.enabled = true
     }
 }
-
-checkstyleJmh {}
 
 // Publishing
 // -------------------------------------------------------------------------------

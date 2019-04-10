@@ -11,12 +11,18 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.utils;
+package software.amazon.ionpathextraction.internal;
 
 import software.amazon.ionpathextraction.exceptions.PathExtractionException;
 
 /**
+ * <p>
  * Precondition check helper.
+ * </p>
+ *
+ * <p>
+ * Internal only. Not intended for application use.
+ * </p>
  */
 public class Preconditions {
 

@@ -13,7 +13,7 @@
 
 package software.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,9 +119,10 @@ public final class PathExtractorBuilder<T> {
     public PathExtractorBuilder<T> withSearchPath(final String searchPathAsIon,
                                                   final BiFunction<IonReader, T, Integer> callback) {
         checkArgument(searchPathAsIon != null, "searchPathAsIon cannot be null");
+        checkArgument(callback != null, "callback cannot be null");
 
-        List<PathComponent> pathComponents = PathComponentParser.parse(searchPathAsIon);
-        withSearchPath(pathComponents, callback);
+        SearchPath<T> searchPath = SearchPathParser.parse(searchPathAsIon, callback);
+        searchPaths.add(searchPath);
 
         return this;
     }
@@ -186,7 +187,11 @@ public final class PathExtractorBuilder<T> {
         checkArgument(pathComponents != null, "pathComponents cannot be null");
         checkArgument(callback != null, "callback cannot be null");
 
-        searchPaths.add(new SearchPath<>(pathComponents, callback));
+        if (pathComponents.isEmpty()) {
+            searchPaths.add(new TopLevelSearchPath<>(callback));
+        } else {
+            searchPaths.add(new PathComponentSearchPath<>(pathComponents, callback));
+        }
 
         return this;
     }

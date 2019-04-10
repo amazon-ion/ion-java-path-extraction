@@ -30,12 +30,22 @@ Some examples:
 ```
 data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
 
-(foo 0)                     - matches "foo1"
-(1)                         - matches "myBarValue"
-(*)                         - matches ["foo1", "foo2"], "myBarValue" and A::"annotatedValue"
-()                          - matches {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
-(foo bar)                   - matches "myBarValue" and A::"annotatedValue"
-(foo (bar annotatedWith A)) - matches A::"annotatedValue"
+(foo 0)       - matches "foo1"
+(1)           - matches "myBarValue"
+(*)           - matches ["foo1", "foo2"], "myBarValue" and A::"annotatedValue"
+()            - matches {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
+(foo bar)     - matches "myBarValue" and A::"annotatedValue"
+(foo A::bar)  - matches A::"annotatedValue"
+```
+
+The `()` matcher matches all values in the stream but you can also use annotations with it, example:
+```
+data on reader: 2 3 {} 4 A::2 B::C::[]
+
+()        - matches 2, 3, {}, 4, A::2 and B::C::[]
+A::()     - matches A::2
+B::C::()  - matches B::C::[]
+B::()     - doesn't match anything
 ```
 
 ### Configuration
@@ -73,7 +83,7 @@ final Function<IonReader, Integer> callback = (reader) -> {
 final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
     .withSearchPath("(foo)", callback)
     .withSearchPath("(bar)", callback)
-    .withSearchPath("((baz annotatedWith A) 1)", callback)
+    .withSearchPath("(A::baz 1)", callback)
     .build();
 
 final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
@@ -89,6 +99,32 @@ assertEquals(23, counter.get());
 ```
 
 ```java
+// Top level matchers
+final AtomicLong counterA = new AtomicLong(0);
+final AtomicLong counterB = new AtomicLong(0);
+
+final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
+    .withSearchPath("()", (reader) -> {
+        counterA.addAndGet(reader.intValue());
+
+        return 0;
+    })
+    .withSearchPath("A::()", (reader) -> {
+        counterB.addAndGet(reader.intValue());
+
+        return 0;
+    })
+    .build();
+
+final IonReader ionReader = IonReaderBuilder.standard().build("1 1 1 A::10 1");
+
+pathExtractor.match(ionReader);
+
+assertEquals(14, counterA.get());
+assertEquals(10, counterB.get());
+```
+
+```java
 // accumulates matched paths into a list
 final BiFunction<IonReader, List<Integer>, Integer> callback = (reader, list) -> {
     list.add(reader.intValue());
@@ -99,7 +135,7 @@ final BiFunction<IonReader, List<Integer>, Integer> callback = (reader, list) ->
 final PathExtractor<List<Integer>> pathExtractor = PathExtractorBuilder.<List<Integer>>standard()
     .withSearchPath("(foo)", callback)
     .withSearchPath("(bar)", callback)
-    .withSearchPath("((baz annotatedWith A) 1)", callback)
+    .withSearchPath("(A::baz 1)", callback)
     .build();
 
 final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"

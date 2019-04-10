@@ -17,17 +17,25 @@ import java.util.function.BiFunction;
 import software.amazon.ion.IonReader;
 
 /**
- * A path which is provided to the extractor for matching.
+ * A search path with no path components, e.g. ()
  *
  * @param <T> type accepted by the callback function
  */
-interface SearchPath<T> {
+final class TopLevelSearchPath<T> implements SearchPath<T> {
 
-    BiFunction<IonReader, T, Integer> getCallback();
+    private final BiFunction<IonReader, T, Integer> callback;
 
-    Type getType();
+    TopLevelSearchPath(final BiFunction<IonReader, T, Integer> callback) {
+        this.callback = callback;
+    }
 
-    enum Type {
-        TOP_LEVEL, ANNOTATED_TOP_LEVEL, PATH_COMPONENTS
+    @Override
+    public BiFunction<IonReader, T, Integer> getCallback() {
+        return callback;
+    }
+
+    @Override
+    public Type getType() {
+        return Type.TOP_LEVEL;
     }
 }

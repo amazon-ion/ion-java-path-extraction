@@ -13,6 +13,8 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
+import static software.amazon.ionpathextraction.internal.ArrayUtils.arrayEquals;
+
 import software.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.PathExtractorConfig;
 
@@ -41,25 +43,7 @@ public final class AnnotatedPathComponent implements PathComponent {
 
     @Override
     public boolean matches(final IonReader reader, final int currentPosition, final PathExtractorConfig config) {
-        return annotationsMatch(reader.getTypeAnnotations(), config) && pathComponent
-            .matches(reader, currentPosition, config);
-    }
-
-    private boolean annotationsMatch(final String[] valueAnnotations, final PathExtractorConfig config) {
-        if (valueAnnotations.length != annotations.length) {
-            return false;
-        }
-
-        for (int i = 0; i < annotations.length; i++) {
-            boolean positionMatches = config.isMatchCaseInsensitive()
-                ? annotations[i].equalsIgnoreCase(valueAnnotations[i])
-                : annotations[i].equals(valueAnnotations[i]);
-
-            if (!positionMatches) {
-                return false;
-            }
-        }
-
-        return true;
+        return arrayEquals(reader.getTypeAnnotations(), annotations, config.isMatchCaseInsensitive())
+            && pathComponent.matches(reader, currentPosition, config);
     }
 }

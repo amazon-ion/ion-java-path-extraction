@@ -40,7 +40,20 @@ import software.amazon.ionpathextraction.PathExtractorBuilder;
  * Benchmarks comparing the PathExtractor with fully materializing the DOM.
  */
 public class PathExtractorBenchmark {
+
     private static final IonSystem DOM_FACTORY = IonSystemBuilder.standard().build();
+    private static final String DATA_URL = "https://data.nasa.gov/data.json";
+    private static byte[] bytesBinary;
+    private static byte[] bytesText;
+
+    // sets up shared test data once.
+    static {
+        try {
+            setupTestData();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static IonReader newReader(final InputStream inputStream) {
         return IonReaderBuilder.standard().build(inputStream);
@@ -53,10 +66,6 @@ public class PathExtractorBenchmark {
     private static IonWriter newTextWriter(final OutputStream outputStream) {
         return IonTextWriterBuilder.standard().build(outputStream);
     }
-
-    private static final String DATA_URL = "https://data.nasa.gov/data.json";
-    private static byte[] bytesBinary;
-    private static byte[] bytesText;
 
     private static void setupTestData() throws IOException {
         final URL url = new URL(DATA_URL);
@@ -83,87 +92,6 @@ public class PathExtractorBenchmark {
         }
 
         bytesText = textOut.toByteArray();
-    }
-
-    // sets up shared test data once.
-    static {
-        try {
-            setupTestData();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Each thread gets a single instance.
-     */
-    @State(Scope.Thread)
-    public static class ThreadState {
-
-        PathExtractor<?> pathExtractor;
-        PathExtractor<?> pathExtractorPartial;
-        PathExtractor<?> pathExtractorPartialNoDom;
-
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-            pathExtractor = makePathExtractor(reader -> {
-                    // reads matches as DOM doing similar work as the DOM loader
-                    DOM_FACTORY.newValue(reader);
-                    return 0;
-                },
-                "(@context)",
-                "(@type)",
-                "(conformsTo)",
-                "(describedBy)",
-                "(dataset * @type)",
-                "(dataset * accessLevel)",
-                "(dataset * accrualPeriodicity)",
-                "(dataset * bureauCode)",
-                "(dataset * contactPoint)",
-                "(dataset * description)",
-                "(dataset * distribution)",
-                "(dataset * identifier)",
-                "(dataset * issued)",
-                "(dataset * keyword)",
-                "(dataset * landingPage)",
-                "(dataset * modified)",
-                "(dataset * programCode)",
-                "(dataset * publisher)",
-                "(dataset * title)",
-                "(dataset * license)"
-            );
-
-            pathExtractorPartial = makePathExtractor(reader -> {
-                    // reads matches as DOM doing similar work as the DOM loader but only for matched values
-                    DOM_FACTORY.newValue(reader);
-                    return 0;
-                },
-                "(@context)",
-                "(@type)",
-                "(conformsTo)",
-                "(describedBy)",
-                "(dataset * accessLevel)"
-            );
-
-            pathExtractorPartialNoDom = makePathExtractor(reader -> {
-                    // reads the value without materializing a DOM object
-                    reader.stringValue(); // all matched paths are strings
-                    return 0;
-                },
-                "(@context)",
-                "(@type)",
-                "(conformsTo)",
-                "(describedBy)",
-                "(dataset * accessLevel)"
-            );
-        }
-
-        private PathExtractor<?> makePathExtractor(final Function<IonReader, Integer> callback,
-                                                   final String... searchPaths) {
-            final PathExtractorBuilder<?> builder = PathExtractorBuilder.standard();
-            Stream.of(searchPaths).forEach(sp -> builder.withSearchPath(sp, callback));
-            return builder.build();
-        }
     }
 
     /**
@@ -252,5 +180,77 @@ public class PathExtractorBenchmark {
     @Benchmark
     public Object domText() {
         return DOM_FACTORY.getLoader().load(bytesText);
+    }
+
+    /**
+     * Each thread gets a single instance.
+     */
+    @State(Scope.Thread)
+    public static class ThreadState {
+
+        PathExtractor<?> pathExtractor;
+        PathExtractor<?> pathExtractorPartial;
+        PathExtractor<?> pathExtractorPartialNoDom;
+
+        @Setup(Level.Trial)
+        public void setup() throws Exception {
+            pathExtractor = makePathExtractor(reader -> {
+                    // reads matches as DOM doing similar work as the DOM loader
+                    DOM_FACTORY.newValue(reader);
+                    return 0;
+                },
+                "(@context)",
+                "(@type)",
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * @type)",
+                "(dataset * accessLevel)",
+                "(dataset * accrualPeriodicity)",
+                "(dataset * bureauCode)",
+                "(dataset * contactPoint)",
+                "(dataset * description)",
+                "(dataset * distribution)",
+                "(dataset * identifier)",
+                "(dataset * issued)",
+                "(dataset * keyword)",
+                "(dataset * landingPage)",
+                "(dataset * modified)",
+                "(dataset * programCode)",
+                "(dataset * publisher)",
+                "(dataset * title)",
+                "(dataset * license)"
+            );
+
+            pathExtractorPartial = makePathExtractor(reader -> {
+                    // reads matches as DOM doing similar work as the DOM loader but only for matched values
+                    DOM_FACTORY.newValue(reader);
+                    return 0;
+                },
+                "(@context)",
+                "(@type)",
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * accessLevel)"
+            );
+
+            pathExtractorPartialNoDom = makePathExtractor(reader -> {
+                    // reads the value without materializing a DOM object
+                    reader.stringValue(); // all matched paths are strings
+                    return 0;
+                },
+                "(@context)",
+                "(@type)",
+                "(conformsTo)",
+                "(describedBy)",
+                "(dataset * accessLevel)"
+            );
+        }
+
+        private PathExtractor<?> makePathExtractor(final Function<IonReader, Integer> callback,
+                                                   final String... searchPaths) {
+            final PathExtractorBuilder<?> builder = PathExtractorBuilder.standard();
+            Stream.of(searchPaths).forEach(sp -> builder.withSearchPath(sp, callback));
+            return builder.build();
+        }
     }
 }

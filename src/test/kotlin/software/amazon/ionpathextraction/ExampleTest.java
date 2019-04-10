@@ -42,7 +42,7 @@ public class ExampleTest {
         final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
             .withSearchPath("(foo)", callback)
             .withSearchPath("(bar)", callback)
-            .withSearchPath("((baz annotatedWith A) 1)", callback)
+            .withSearchPath("(A::baz 1)", callback)
             .build();
 
         final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
@@ -58,6 +58,32 @@ public class ExampleTest {
     }
 
     @Test
+    public void topLevelExample() {
+        final AtomicLong counterA = new AtomicLong(0);
+        final AtomicLong counterB = new AtomicLong(0);
+
+        final PathExtractor<?> pathExtractor = PathExtractorBuilder.standard()
+            .withSearchPath("()", (reader) -> {
+                counterA.addAndGet(reader.intValue());
+
+                return 0;
+            })
+            .withSearchPath("A::()", (reader) -> {
+                counterB.addAndGet(reader.intValue());
+
+                return 0;
+            })
+            .build();
+
+        final IonReader ionReader = IonReaderBuilder.standard().build("1 1 1 A::10 1");
+
+        pathExtractor.match(ionReader);
+
+        assertEquals(14, counterA.get());
+        assertEquals(10, counterB.get());
+    }
+
+    @Test
     public void exampleWithContext() {
 
         final BiFunction<IonReader, List<Integer>, Integer> callback = (reader, list) -> {
@@ -69,7 +95,7 @@ public class ExampleTest {
         final PathExtractor<List<Integer>> pathExtractor = PathExtractorBuilder.<List<Integer>>standard()
             .withSearchPath("(foo)", callback)
             .withSearchPath("(bar)", callback)
-            .withSearchPath("((baz annotatedWith A) 1)", callback)
+            .withSearchPath("(A::baz 1)", callback)
             .build();
 
         final IonReader ionReader = IonReaderBuilder.standard().build("{foo: 1}"
