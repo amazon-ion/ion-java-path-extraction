@@ -53,20 +53,13 @@ final class SearchPathParser {
             checkArgument(reader.getType() == IonType.SEXP || reader.getType() == IonType.LIST,
                 "ionPathExpression must be a s-expression or list");
 
-            if (reader.getTypeAnnotations().length > 0) {
-                return new AnnotatedTopLevelSearchPath<>(reader.getTypeAnnotations(), callback);
-            }
+            final String[] typeAnnotations = reader.getTypeAnnotations();
 
             reader.stepIn();
             pathComponents = parsePathComponents(reader);
             reader.stepOut();
 
-            if (pathComponents.isEmpty()) {
-                return new TopLevelSearchPath<>(callback);
-            }
-
-            return new PathComponentSearchPath<>(pathComponents, callback);
-
+            return new SearchPath<>(pathComponents, callback, typeAnnotations);
         } catch (IOException e) {
             throw new PathExtractionException(e);
         }

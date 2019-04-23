@@ -13,21 +13,64 @@
 
 package software.amazon.ionpathextraction;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.internal.ArrayUtils;
+import software.amazon.ionpathextraction.internal.MatchContext;
+import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * A path which is provided to the extractor for matching.
  *
  * @param <T> type accepted by the callback function
  */
-interface SearchPath<T> {
+final class SearchPath<T> {
 
-    BiFunction<IonReader, T, Integer> getCallback();
+    private final List<PathComponent> pathComponents;
+    private final BiFunction<IonReader, T, Integer> callback;
+    private final String[] annotations;
 
-    Type getType();
+    SearchPath(final List<PathComponent> pathComponents,
+               final BiFunction<IonReader, T, Integer> callback,
+               final String[] annotations) {
+        this.annotations = annotations;
+        this.pathComponents = pathComponents;
+        this.callback = callback;
+    }
 
-    enum Type {
-        TOP_LEVEL, ANNOTATED_TOP_LEVEL, PATH_COMPONENTS
+    int size() {
+        return pathComponents.size();
+    }
+
+    boolean isTerminal(final int pathComponentIndex) {
+        return pathComponentIndex == size();
+    }
+
+    boolean partialMatchAt(final MatchContext context) {
+        int pathComponentIndex = context.getPathComponentIndex();
+
+        if (pathComponentIndex == 0) {
+            return annotationsMatch(context);
+        } else if (pathComponentIndex <= pathComponents.size()) {
+            return pathComponents.get(pathComponentIndex - 1).matches(context);
+        }
+
+        return false;
+    }
+
+    BiFunction<IonReader, T, Integer> getCallback() {
+        return callback;
+    }
+
+    private boolean annotationsMatch(final MatchContext context) {
+        if (annotations.length == 0) {
+            return true;
+        }
+
+        return ArrayUtils.arrayEquals(
+            annotations,
+            context.getAnnotations(),
+            context.getConfig().isMatchCaseInsensitive());
     }
 }

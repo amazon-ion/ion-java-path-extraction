@@ -13,7 +13,6 @@
 
 package software.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.internal.ArrayUtils.arrayEquals;
 import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 import static software.amazon.ionpathextraction.internal.Preconditions.checkState;
 
@@ -23,8 +22,7 @@ import java.util.Deque;
 import java.util.List;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
-import software.amazon.ionpathextraction.SearchPath.Type;
-import software.amazon.ionpathextraction.pathcomponents.PathComponent;
+import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * <p>
@@ -51,9 +49,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
         this.config = config;
 
         maxSearchPathDepth = searchPaths.stream()
-            .filter(it -> Type.PATH_COMPONENTS.equals(it.getType()))
-            .map(it -> (PathComponentSearchPath<T>) it)
-            .mapToInt(it -> it.getPathComponents().size())
+            .mapToInt(SearchPath::size)
             .max()
             .orElse(0);
     }
@@ -80,26 +76,27 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
 
     private int matchRecursive(final IonReader reader, final Tracker<T> tracker, final T context) {
         final int currentDepth = tracker.getCurrentDepth();
-        int currentPosition = 0;
+        int readerContainerIndex = 0;
 
         while (reader.next() != null) {
             // will continue to next depth
             final List<SearchPath<T>> partialMatches = new ArrayList<>();
+            final String[] annotations = reader.getTypeAnnotations();
 
             for (SearchPath<T> sp : tracker.activePaths()) {
-                boolean match = searchPathPartialMatchAt(sp, reader, tracker.getCurrentDepth(), currentPosition);
-                boolean isTerminal = isTerminal(tracker.getCurrentDepth(), sp);
+                final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
+                boolean spTerminal = sp.isTerminal(tracker.getCurrentDepth());
+                boolean partialMatch = sp.partialMatchAt(matchContext);
 
-                if (match && isTerminal) {
-                    int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
-                    if (stepOutTimes > 0) {
-                        return stepOutTimes - 1;
+                if (partialMatch) {
+                    if (spTerminal) {
+                        int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
+                        if (stepOutTimes > 0) {
+                            return stepOutTimes - 1;
+                        }
+                    } else {
+                        partialMatches.add(sp);
                     }
-                }
-
-                // all non terminal paths are partial matches at depth zero
-                if (!isTerminal && (currentDepth == 0 || match)) {
-                    partialMatches.add(sp);
                 }
             }
 
@@ -115,7 +112,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
                 }
             }
 
-            currentPosition += 1;
+            readerContainerIndex += 1;
         }
 
         return 0;
@@ -147,49 +144,6 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
                 + readerRelativeDepth);
 
         return stepOutTimes;
-    }
-
-    private boolean searchPathPartialMatchAt(final SearchPath<T> searchPath,
-                                             final IonReader reader,
-                                             final int currentDepth,
-                                             final int currentPosition) {
-        switch (searchPath.getType()) {
-            case TOP_LEVEL:
-                return currentDepth == 0;
-
-            case ANNOTATED_TOP_LEVEL:
-                AnnotatedTopLevelSearchPath<T> annotatedSearchPath = (AnnotatedTopLevelSearchPath<T>) searchPath;
-                return currentDepth == 0
-                    && arrayEquals(
-                        reader.getTypeAnnotations(),
-                        annotatedSearchPath.getAnnotations(),
-                        config.isMatchCaseInsensitive());
-
-            case PATH_COMPONENTS:
-                final PathComponentSearchPath<T> pathComponentSearchPath = (PathComponentSearchPath<T>) searchPath;
-                final List<PathComponent> pathComponents = pathComponentSearchPath.getPathComponents();
-
-                // depth zero can only match top level search paths
-                if (currentDepth > 0 && currentDepth <= pathComponents.size()) {
-                    return pathComponents.get(currentDepth - 1).matches(reader, currentPosition, config);
-                }
-
-                return false;
-        }
-
-        throw new IllegalStateException();
-    }
-
-    private boolean isTerminal(final int currentDepth, final SearchPath<T> searchPath) {
-        switch (searchPath.getType()) {
-            case TOP_LEVEL:
-            case ANNOTATED_TOP_LEVEL:
-                return currentDepth == 0;
-            case PATH_COMPONENTS:
-                return currentDepth == ((PathComponentSearchPath<T>) searchPath).getPathComponents().size();
-        }
-
-        throw new IllegalStateException();
     }
 
     private static class Tracker<T> {

@@ -13,9 +13,7 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.PathExtractor;
-import software.amazon.ionpathextraction.PathExtractorConfig;
+import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * A search path component, for example the path (foo * 1) has three components.
@@ -31,10 +29,7 @@ public interface PathComponent {
     /**
      * Checks if this component matches the current reader position with the given configuration.
      *
-     * @param reader {@link IonReader}.
-     * @param currentPosition reader value position at the the current depth.
-     * @param config {@link PathExtractor} configuration.
      * @return true if the component matches the current reader position false otherwise.
      */
-    boolean matches(final IonReader reader, final int currentPosition, final PathExtractorConfig config);
+    boolean matches(final MatchContext context);
 }

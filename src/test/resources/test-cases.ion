@@ -251,6 +251,16 @@ search paths
 // With annotations ----------------------------------------------------------------------
 { searchPath: A::(), data: A::1, expected: [A::1] }
 { searchPath: A::(), data: 1, expected: [] }
+{
+  searchPath: A::(foo),
+  data: $datagram::[
+    A::{bar: 1},
+    A::{foo: 2},
+    {foo: 3}
+  ],
+  expected: [2]
+}
+
 { searchPath: (A::'*'), data: [A::1, 2], expected: [A::1] }
 { searchPath: ('$ion_extractor_field'::*), data: {'*': A::1, foo: 2}, expected: [A::1]}
 { searchPath: (A::B::C::*), data: [A::B::C::1, B::A::C::2], expected: [A::B::C::1] }

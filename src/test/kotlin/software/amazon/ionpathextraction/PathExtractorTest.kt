@@ -43,7 +43,15 @@ class PathExtractorTest {
 
         private fun IonValue.toText(): String {
             val out = StringBuilder()
-            ION.newTextWriter(out).use { this.writeTo(it) }
+
+            ION.newTextWriter(out).use { writer ->
+                if (hasTypeAnnotation("${'$'}datagram") && this is IonContainer) {
+                    forEach { it -> it.writeTo(writer) }
+                } else {
+                    this.writeTo(writer)
+                }
+            }
+
             return out.toString()
         }
 
@@ -206,7 +214,7 @@ class PathExtractorTest {
         )
 
         val extractor = PathExtractorBuilder.standard<Any>().apply {
-            counter.forEach { sp, _ ->
+            counter.forEach { (sp, _) ->
                 withSearchPath(sp) { _ ->
                     counter[sp] = counter[sp]!! + 1
                     0
@@ -236,7 +244,7 @@ class PathExtractorTest {
     @Test
     fun nullListPath() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath(null as List<PathComponent>?, emptyCallback)
+            PathExtractorBuilder.standard<Any>().withSearchPath(null as List<PathComponent>?, emptyCallback, emptyArray())
         }
 
         assertEquals("pathComponents cannot be null", exception.message)
