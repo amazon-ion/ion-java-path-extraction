@@ -16,6 +16,7 @@ package software.amazon.ionpathextraction.pathcomponents;
 import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
@@ -29,7 +30,7 @@ import software.amazon.ionpathextraction.internal.MatchContext;
  *  (bar baz)  | [1]
  * </pre>
  */
-public final class Text implements PathComponent {
+public final class Text extends PathComponent {
 
     private final String fieldName;
 
@@ -38,14 +39,15 @@ public final class Text implements PathComponent {
      *
      * @param fieldName component field name.
      */
-    public Text(final String fieldName) {
+    public Text(final String fieldName, final String[] annotations) {
+        super(new Annotations(annotations));
         checkArgument(fieldName != null, "fieldName cannot be null");
 
         this.fieldName = fieldName;
     }
 
     @Override
-    public boolean matches(final MatchContext context) {
+    public boolean innerMatches(final MatchContext context) {
         final IonReader reader = context.getReader();
         if (!reader.isInStruct()) {
             return false;

@@ -11,19 +11,22 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction;
+package software.amazon.ionpathextraction.internal;
 
+/**
+ * Internal only. Not intended for application use.
+ */
 public final class PathExtractorConfig {
 
     private final boolean matchRelativePaths;
     private final boolean matchCaseInsensitive;
 
-    PathExtractorConfig(final boolean matchRelativePaths, final boolean matchCaseInsensitive) {
+    public PathExtractorConfig(final boolean matchRelativePaths, final boolean matchCaseInsensitive) {
         this.matchRelativePaths = matchRelativePaths;
         this.matchCaseInsensitive = matchCaseInsensitive;
     }
 
-    boolean isMatchRelativePaths() {
+    public boolean isMatchRelativePaths() {
         return matchRelativePaths;
     }
 

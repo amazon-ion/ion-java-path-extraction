@@ -14,7 +14,6 @@
 package software.amazon.ionpathextraction.internal;
 
 import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.PathExtractorConfig;
 
 /**
  * <p>

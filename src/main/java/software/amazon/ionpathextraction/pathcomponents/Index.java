@@ -13,6 +13,7 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
+import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
@@ -26,7 +27,7 @@ import software.amazon.ionpathextraction.internal.MatchContext;
  *  (0 2)      | 3
  * </pre>
  */
-public final class Index implements PathComponent {
+public final class Index extends PathComponent {
 
     private final int ordinal;
 
@@ -35,12 +36,13 @@ public final class Index implements PathComponent {
      *
      * @param ordinal component ordinal.
      */
-    public Index(final int ordinal) {
+    public Index(final int ordinal, final String[] annotations) {
+        super(new Annotations(annotations));
         this.ordinal = ordinal;
     }
 
     @Override
-    public boolean matches(final MatchContext context) {
+    public boolean innerMatches(final MatchContext context) {
         return ordinal == context.getReaderContainerIndex();
     }
 }

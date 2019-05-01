@@ -16,7 +16,7 @@ package software.amazon.ionpathextraction;
 import java.util.List;
 import java.util.function.BiFunction;
 import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.internal.ArrayUtils;
+import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
@@ -29,48 +29,42 @@ final class SearchPath<T> {
 
     private final List<PathComponent> pathComponents;
     private final BiFunction<IonReader, T, Integer> callback;
-    private final String[] annotations;
+    private final Annotations annotations;
 
     SearchPath(final List<PathComponent> pathComponents,
                final BiFunction<IonReader, T, Integer> callback,
-               final String[] annotations) {
+               final Annotations annotations) {
         this.annotations = annotations;
         this.pathComponents = pathComponents;
         this.callback = callback;
     }
 
+    /**
+     * Number of path components in this search path.
+     */
     int size() {
         return pathComponents.size();
     }
 
-    boolean isTerminal(final int pathComponentIndex) {
-        return pathComponentIndex == size();
+    /**
+     * Callback to be invoked when the Search Path is matched.
+     */
+    BiFunction<IonReader, T, Integer> getCallback() {
+        return callback;
     }
 
+    /**
+     * Checks that this search path matches the stream at a given path context index.
+     */
     boolean partialMatchAt(final MatchContext context) {
         int pathComponentIndex = context.getPathComponentIndex();
 
         if (pathComponentIndex == 0) {
-            return annotationsMatch(context);
+            return annotations.match(context.getAnnotations(), context.getConfig().isMatchCaseInsensitive());
         } else if (pathComponentIndex <= pathComponents.size()) {
             return pathComponents.get(pathComponentIndex - 1).matches(context);
         }
 
         return false;
-    }
-
-    BiFunction<IonReader, T, Integer> getCallback() {
-        return callback;
-    }
-
-    private boolean annotationsMatch(final MatchContext context) {
-        if (annotations.length == 0) {
-            return true;
-        }
-
-        return ArrayUtils.arrayEquals(
-            annotations,
-            context.getAnnotations(),
-            context.getConfig().isMatchCaseInsensitive());
     }
 }

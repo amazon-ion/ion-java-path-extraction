@@ -13,6 +13,9 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+
+import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
@@ -26,23 +29,16 @@ import software.amazon.ionpathextraction.internal.MatchContext;
  *  (* *)      | 1, 2, 3 and [1]
  * </pre>
  */
-public final class Wildcard implements PathComponent {
+public final class Wildcard extends PathComponent {
 
     public static final String TEXT = "*";
 
-    /**
-     * Singleton {@link Wildcard} instance.
-     */
-    public static final Wildcard INSTANCE = new Wildcard();
-
-    /**
-     * use INSTANCE.
-     */
-    private Wildcard() {
+    public Wildcard(final String[] annotations) {
+        super(new Annotations(annotations));
     }
 
     @Override
-    public boolean matches(final MatchContext context) {
+    public boolean innerMatches(final MatchContext context) {
         return true;
     }
 }

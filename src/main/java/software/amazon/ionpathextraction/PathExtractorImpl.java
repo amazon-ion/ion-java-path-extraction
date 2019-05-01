@@ -23,6 +23,7 @@ import java.util.List;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
 import software.amazon.ionpathextraction.internal.MatchContext;
+import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 
 /**
  * <p>
@@ -81,15 +82,16 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
         while (reader.next() != null) {
             // will continue to next depth
             final List<SearchPath<T>> partialMatches = new ArrayList<>();
-            final String[] annotations = reader.getTypeAnnotations();
 
             for (SearchPath<T> sp : tracker.activePaths()) {
                 final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
-                boolean spTerminal = sp.isTerminal(tracker.getCurrentDepth());
+                // a terminal search path is at the last path component meaning that if this search path partially
+                // matches it will be a full match and the callback must be invoked
+                boolean searchPathIsTerminal = isTerminal(tracker.getCurrentDepth(), sp);
                 boolean partialMatch = sp.partialMatchAt(matchContext);
 
                 if (partialMatch) {
-                    if (spTerminal) {
+                    if (searchPathIsTerminal) {
                         int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
                         if (stepOutTimes > 0) {
                             return stepOutTimes - 1;
@@ -144,6 +146,10 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
                 + readerRelativeDepth);
 
         return stepOutTimes;
+    }
+
+    private boolean isTerminal(final int pathComponentIndex, final SearchPath<T> searchPath) {
+        return pathComponentIndex == searchPath.size();
     }
 
     private static class Tracker<T> {

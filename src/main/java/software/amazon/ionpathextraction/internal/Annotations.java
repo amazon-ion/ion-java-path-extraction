@@ -17,24 +17,33 @@ import java.util.stream.IntStream;
 
 /**
  * <p>
- * Utility methods for dealing with arrays.
+ * Represents the optional annotation that path components or search paths should match on.
  * </p>
  *
  * <p>
  * Internal only. Not intended for application use.
  * </p>
  */
-public class ArrayUtils {
+public class Annotations {
+
+    final String[] rawAnnotations;
 
     /**
-     * Checks if two string arrays are equals.
-     *
-     * @param left left array to compare
-     * @param right right array
-     * @param ignoreCase if it ignores case when comparing elements
-     * @return true if the arrays are equals false otherwise
+     * Constructor.
      */
-    public static boolean arrayEquals(final String[] left, final String[] right, final boolean ignoreCase) {
+    public Annotations(final String[] rawAnnotations) {
+        this.rawAnnotations = rawAnnotations;
+    }
+
+    /**
+     * returns true if it matches on the annotations provided.
+     */
+    public boolean match(final String[] annotations, final boolean ignoreCase) {
+        return rawAnnotations.length == 0
+            || arrayEquals(rawAnnotations, annotations, ignoreCase);
+    }
+
+    private static boolean arrayEquals(final String[] left, final String[] right, final boolean ignoreCase) {
         if (left.length != right.length) {
             return false;
         }

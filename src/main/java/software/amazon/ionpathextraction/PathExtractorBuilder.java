@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
@@ -190,7 +192,7 @@ public final class PathExtractorBuilder<T> {
         checkArgument(callback != null, "callback cannot be null");
         checkArgument(annotations != null, "annotations cannot be null");
 
-        searchPaths.add(new SearchPath<>(pathComponents, callback, annotations));
+        searchPaths.add(new SearchPath<>(pathComponents, callback, new Annotations(annotations)));
 
         return this;
     }

@@ -25,7 +25,7 @@ import software.amazon.ion.IonWriter;
 import software.amazon.ion.system.IonReaderBuilder;
 import software.amazon.ion.system.IonTextWriterBuilder;
 import software.amazon.ionpathextraction.exceptions.PathExtractionException;
-import software.amazon.ionpathextraction.pathcomponents.AnnotatedPathComponent;
+import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.pathcomponents.Index;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 import software.amazon.ionpathextraction.pathcomponents.Text;
@@ -59,7 +59,7 @@ final class SearchPathParser {
             pathComponents = parsePathComponents(reader);
             reader.stepOut();
 
-            return new SearchPath<>(pathComponents, callback, typeAnnotations);
+            return new SearchPath<>(pathComponents, callback, new Annotations(typeAnnotations));
         } catch (IOException e) {
             throw new PathExtractionException(e);
         }
@@ -77,28 +77,24 @@ final class SearchPathParser {
 
     private static PathComponent readComponent(final IonReader reader) {
         final PathComponent pathComponent;
+        final String[] annotations = extractAnnotations(reader);
+
         switch (reader.getType()) {
             case INT:
-                pathComponent = new Index(reader.intValue());
+                pathComponent = new Index(reader.intValue(), annotations);
                 break;
 
             case STRING:
             case SYMBOL:
                 if (isWildcard(reader)) {
-                    pathComponent = Wildcard.INSTANCE;
+                    pathComponent = new Wildcard(annotations);
                 } else {
-                    pathComponent = new Text(reader.stringValue());
+                    pathComponent = new Text(reader.stringValue(), annotations);
                 }
                 break;
 
             default:
                 throw new PathExtractionException("Invalid path component type: " + readIonText(reader));
-        }
-
-        String[] annotations = extractAnnotations(reader);
-
-        if (annotations.length > 0) {
-            return new AnnotatedPathComponent(annotations, pathComponent);
         }
 
         return pathComponent;
