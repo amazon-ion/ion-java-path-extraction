@@ -19,10 +19,10 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.ionpathextraction.exceptions.PathExtractionException
-import software.amazon.ionpathextraction.pathcomponents.PathComponent
 import software.amazon.ion.*
 import software.amazon.ion.system.IonSystemBuilder
+import software.amazon.ionpathextraction.exceptions.PathExtractionException
+import software.amazon.ionpathextraction.pathcomponents.PathComponent
 import java.io.File
 import java.util.stream.Stream
 import kotlin.test.assertTrue
@@ -43,7 +43,15 @@ class PathExtractorTest {
 
         private fun IonValue.toText(): String {
             val out = StringBuilder()
-            ION.newTextWriter(out).use { this.writeTo(it) }
+
+            ION.newTextWriter(out).use { writer ->
+                if (hasTypeAnnotation("${'$'}datagram") && this is IonContainer) {
+                    forEach { it -> it.writeTo(writer) }
+                } else {
+                    this.writeTo(writer)
+                }
+            }
+
             return out.toString()
         }
 
@@ -52,7 +60,6 @@ class PathExtractorTest {
                 ION.loader.load(File("src/test/resources/test-cases.ion"))
                         .map { it as IonStruct }
                         .map { struct ->
-
                             // single
                             val searchPaths = if (struct.containsKey("searchPath")) {
                                 listOf(struct["searchPath"].toText())
@@ -90,7 +97,7 @@ class PathExtractorTest {
         val out = ION.newEmptyList()
         extractor.match(ION.newReader(testCase.data), out)
 
-        assertEquals(testCase.expected, out)
+        assertEquals(testCase.expected, out, testCase.toString())
     }
 
     @Test
@@ -207,7 +214,7 @@ class PathExtractorTest {
         )
 
         val extractor = PathExtractorBuilder.standard<Any>().apply {
-            counter.forEach { sp, _ ->
+            counter.forEach { (sp, _) ->
                 withSearchPath(sp) { _ ->
                     counter[sp] = counter[sp]!! + 1
                     0
@@ -237,7 +244,7 @@ class PathExtractorTest {
     @Test
     fun nullListPath() {
         val exception = assertThrows<PathExtractionException> {
-            PathExtractorBuilder.standard<Any>().withSearchPath(null as List<PathComponent>?, emptyCallback)
+            PathExtractorBuilder.standard<Any>().withSearchPath(null as List<PathComponent>?, emptyCallback, emptyArray())
         }
 
         assertEquals("pathComponents cannot be null", exception.message)

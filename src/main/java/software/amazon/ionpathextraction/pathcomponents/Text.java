@@ -13,10 +13,11 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
-import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.PathExtractorConfig;
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * Text path component matches struct field names, example.
@@ -29,7 +30,7 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  *  (bar baz)  | [1]
  * </pre>
  */
-public class Text implements PathComponent {
+public final class Text extends PathComponent {
 
     private final String fieldName;
 
@@ -38,19 +39,21 @@ public class Text implements PathComponent {
      *
      * @param fieldName component field name.
      */
-    public Text(final String fieldName) {
+    public Text(final String fieldName, final String[] annotations) {
+        super(new Annotations(annotations));
         checkArgument(fieldName != null, "fieldName cannot be null");
 
         this.fieldName = fieldName;
     }
 
     @Override
-    public boolean matches(final IonReader reader, final int currentPosition, final PathExtractorConfig config) {
+    public boolean innerMatches(final MatchContext context) {
+        final IonReader reader = context.getReader();
         if (!reader.isInStruct()) {
             return false;
         }
 
-        return config.isMatchCaseInsensitive()
+        return context.getConfig().isMatchCaseInsensitive()
             ? fieldName.equalsIgnoreCase(reader.getFieldName())
             : fieldName.equals(reader.getFieldName());
     }

@@ -13,9 +13,10 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.PathExtractor;
-import software.amazon.ionpathextraction.PathExtractorConfig;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * A search path component, for example the path (foo * 1) has three components.
@@ -26,15 +27,29 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  * <li>1</li>
  * </ol>
  */
-public interface PathComponent {
+public abstract class PathComponent {
+
+    private final Annotations annotations;
+
+    PathComponent(final Annotations annotations) {
+        checkArgument(annotations != null, "fieldName cannot be null");
+
+        this.annotations = annotations;
+    }
 
     /**
      * Checks if this component matches the current reader position with the given configuration.
      *
-     * @param reader {@link IonReader}.
-     * @param currentPosition reader value position at the the current depth.
-     * @param config {@link PathExtractor} configuration.
      * @return true if the component matches the current reader position false otherwise.
      */
-    boolean matches(final IonReader reader, final int currentPosition, final PathExtractorConfig config);
+    public final boolean matches(final MatchContext context) {
+        return annotations.match(context.getAnnotations(), context.getConfig().isMatchCaseInsensitive())
+            && innerMatches(context);
+    }
+
+    /**
+     * Called by {@link PathComponent#matches(MatchContext)} after applying the standard matching logic. Subclasses must
+     * implement their specific matching logic in this method.
+     */
+    protected abstract boolean innerMatches(final MatchContext context);
 }

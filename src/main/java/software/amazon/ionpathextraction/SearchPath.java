@@ -13,33 +13,58 @@
 
 package software.amazon.ionpathextraction;
 
-import java.math.MathContext;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.MatchContext;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
-
-
 
 /**
  * A path which is provided to the extractor for matching.
+ *
+ * @param <T> type accepted by the callback function
  */
-class SearchPath<T> {
+final class SearchPath<T> {
 
     private final List<PathComponent> pathComponents;
     private final BiFunction<IonReader, T, Integer> callback;
+    private final Annotations annotations;
 
-    SearchPath(final List<PathComponent> pathComponents, final BiFunction<IonReader, T, Integer> callback) {
+    SearchPath(final List<PathComponent> pathComponents,
+               final BiFunction<IonReader, T, Integer> callback,
+               final Annotations annotations) {
+        this.annotations = annotations;
         this.pathComponents = pathComponents;
         this.callback = callback;
     }
 
-    List<PathComponent> getPathComponents() {
-        return pathComponents;
+    /**
+     * Number of path components in this search path.
+     */
+    int size() {
+        return pathComponents.size();
     }
 
-    public BiFunction<IonReader, T, Integer> getCallback() {
+    /**
+     * Callback to be invoked when the Search Path is matched.
+     */
+    BiFunction<IonReader, T, Integer> getCallback() {
         return callback;
+    }
+
+    /**
+     * Checks that this search path matches the stream at a given path context index.
+     */
+    boolean partialMatchAt(final MatchContext context) {
+        int pathComponentIndex = context.getPathComponentIndex();
+
+        if (pathComponentIndex == 0) {
+            return annotations.match(context.getAnnotations(), context.getConfig().isMatchCaseInsensitive());
+        } else if (pathComponentIndex <= pathComponents.size()) {
+            return pathComponents.get(pathComponentIndex - 1).matches(context);
+        }
+
+        return false;
     }
 }

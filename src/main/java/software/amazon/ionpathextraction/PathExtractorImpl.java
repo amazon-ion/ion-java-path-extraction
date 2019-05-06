@@ -13,8 +13,8 @@
 
 package software.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
-import static software.amazon.ionpathextraction.utils.Preconditions.checkState;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -22,7 +22,8 @@ import java.util.Deque;
 import java.util.List;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
-import software.amazon.ionpathextraction.pathcomponents.PathComponent;
+import software.amazon.ionpathextraction.internal.MatchContext;
+import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 
 /**
  * <p>
@@ -32,7 +33,7 @@ import software.amazon.ionpathextraction.pathcomponents.PathComponent;
  * This implementation is thread safe.
  * </p>
  */
-class PathExtractorImpl<T> implements PathExtractor<T> {
+final class PathExtractorImpl<T> implements PathExtractor<T> {
 
     private final PathExtractorConfig config;
     private final List<SearchPath<T>> searchPaths;
@@ -49,7 +50,7 @@ class PathExtractorImpl<T> implements PathExtractor<T> {
         this.config = config;
 
         maxSearchPathDepth = searchPaths.stream()
-            .mapToInt(sp -> sp.getPathComponents().size())
+            .mapToInt(SearchPath::size)
             .max()
             .orElse(0);
     }
@@ -76,26 +77,28 @@ class PathExtractorImpl<T> implements PathExtractor<T> {
 
     private int matchRecursive(final IonReader reader, final Tracker<T> tracker, final T context) {
         final int currentDepth = tracker.getCurrentDepth();
-        int ordinal = 0;
+        int readerContainerIndex = 0;
 
         while (reader.next() != null) {
             // will continue to next depth
             final List<SearchPath<T>> partialMatches = new ArrayList<>();
 
             for (SearchPath<T> sp : tracker.activePaths()) {
-                boolean match = pathComponentMatches(sp, reader, tracker.getCurrentDepth(), ordinal);
-                boolean isTerminal = isTerminal(tracker.getCurrentDepth(), sp);
+                final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
+                // a terminal search path is at the last path component meaning that if this search path partially
+                // matches it will be a full match and the callback must be invoked
+                boolean searchPathIsTerminal = isTerminal(tracker.getCurrentDepth(), sp);
+                boolean partialMatch = sp.partialMatchAt(matchContext);
 
-                if (match && isTerminal) {
-                    int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
-                    if (stepOutTimes > 0) {
-                        return stepOutTimes - 1;
+                if (partialMatch) {
+                    if (searchPathIsTerminal) {
+                        int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
+                        if (stepOutTimes > 0) {
+                            return stepOutTimes - 1;
+                        }
+                    } else {
+                        partialMatches.add(sp);
                     }
-                }
-
-                // all non terminal paths are partial matches at depth zero
-                if (!isTerminal && (currentDepth == 0 || match)) {
-                    partialMatches.add(sp);
                 }
             }
 
@@ -111,7 +114,7 @@ class PathExtractorImpl<T> implements PathExtractor<T> {
                 }
             }
 
-            ordinal += 1;
+            readerContainerIndex += 1;
         }
 
         return 0;
@@ -145,24 +148,8 @@ class PathExtractorImpl<T> implements PathExtractor<T> {
         return stepOutTimes;
     }
 
-    private boolean pathComponentMatches(final SearchPath<T> searchPath,
-                                         final IonReader reader,
-                                         final int currentDepth,
-                                         final int currentPosition) {
-        List<PathComponent> pathComponents = searchPath.getPathComponents();
-
-        // currentDepth 0 can only match the empty search path: ()
-        if (currentDepth == 0) {
-            return pathComponents.isEmpty();
-        } else if (currentDepth <= pathComponents.size()) {
-            return pathComponents.get(currentDepth - 1).matches(reader, currentPosition, config);
-        }
-
-        return false;
-    }
-
-    private boolean isTerminal(final int currentDepth, final SearchPath searchPath) {
-        return currentDepth == searchPath.getPathComponents().size();
+    private boolean isTerminal(final int pathComponentIndex, final SearchPath<T> searchPath) {
+        return pathComponentIndex == searchPath.size();
     }
 
     private static class Tracker<T> {

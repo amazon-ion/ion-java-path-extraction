@@ -13,13 +13,15 @@
 
 package software.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.utils.Preconditions.checkArgument;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import software.amazon.ion.IonReader;
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
@@ -97,7 +99,7 @@ public final class PathExtractorBuilder<T> {
      * @param searchPathAsIon string representation of a search path.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#withSearchPath(List, BiFunction)
+     * @see PathExtractorBuilder#withSearchPath(List, BiFunction, String[])
      */
     public PathExtractorBuilder<T> withSearchPath(final String searchPathAsIon,
                                                   final Function<IonReader, Integer> callback) {
@@ -114,14 +116,15 @@ public final class PathExtractorBuilder<T> {
      * @param searchPathAsIon string representation of a search path.
      * @param callback callback to be registered.
      * @return builder for chaining.
-     * @see PathExtractorBuilder#withSearchPath(List, BiFunction)
+     * @see PathExtractorBuilder#withSearchPath(List, BiFunction, String[])
      */
     public PathExtractorBuilder<T> withSearchPath(final String searchPathAsIon,
                                                   final BiFunction<IonReader, T, Integer> callback) {
         checkArgument(searchPathAsIon != null, "searchPathAsIon cannot be null");
+        checkArgument(callback != null, "callback cannot be null");
 
-        List<PathComponent> pathComponents = PathComponentParser.parse(searchPathAsIon);
-        withSearchPath(pathComponents, callback);
+        SearchPath<T> searchPath = SearchPathParser.parse(searchPathAsIon, callback);
+        searchPaths.add(searchPath);
 
         return this;
     }
@@ -131,15 +134,15 @@ public final class PathExtractorBuilder<T> {
      *
      * @param pathComponents search path as a list of path components.
      * @param callback callback to be registered.
+     * @param annotations annotations used with this search path.
      * @return builder for chaining.
      */
     public PathExtractorBuilder<T> withSearchPath(final List<PathComponent> pathComponents,
-                                                  final Function<IonReader, Integer> callback) {
+                                                  final Function<IonReader, Integer> callback,
+                                                  final String[] annotations) {
         checkArgument(callback != null, "callback cannot be null");
 
-        withSearchPath(pathComponents, (reader, t) -> callback.apply(reader));
-
-        return this;
+        return withSearchPath(pathComponents, (reader, t) -> callback.apply(reader), annotations);
     }
 
     /**
@@ -179,14 +182,17 @@ public final class PathExtractorBuilder<T> {
      *
      * @param pathComponents search path as a list of path components.
      * @param callback callback to be registered.
+     * @param annotations annotations used with this search path.
      * @return builder for chaining.
      */
     public PathExtractorBuilder<T> withSearchPath(final List<PathComponent> pathComponents,
-                                                  final BiFunction<IonReader, T, Integer> callback) {
+                                                  final BiFunction<IonReader, T, Integer> callback,
+                                                  final String[] annotations) {
         checkArgument(pathComponents != null, "pathComponents cannot be null");
         checkArgument(callback != null, "callback cannot be null");
+        checkArgument(annotations != null, "annotations cannot be null");
 
-        searchPaths.add(new SearchPath<>(pathComponents, callback));
+        searchPaths.add(new SearchPath<>(pathComponents, callback, new Annotations(annotations)));
 
         return this;
     }

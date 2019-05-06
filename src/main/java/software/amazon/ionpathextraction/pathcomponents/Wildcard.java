@@ -13,8 +13,10 @@
 
 package software.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.PathExtractorConfig;
+import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+
+import software.amazon.ionpathextraction.internal.Annotations;
+import software.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * Wildcard path component matches any value, example.
@@ -27,23 +29,16 @@ import software.amazon.ionpathextraction.PathExtractorConfig;
  *  (* *)      | 1, 2, 3 and [1]
  * </pre>
  */
-public class Wildcard implements PathComponent {
+public final class Wildcard extends PathComponent {
 
     public static final String TEXT = "*";
 
-    /**
-     * Singleton {@link Wildcard} instance.
-     */
-    public static final Wildcard INSTANCE = new Wildcard();
-
-    /**
-     * use INSTANCE.
-     */
-    private Wildcard() {
+    public Wildcard(final String[] annotations) {
+        super(new Annotations(annotations));
     }
 
     @Override
-    public boolean matches(final IonReader reader, final int currentPosition, final PathExtractorConfig config) {
+    public boolean innerMatches(final MatchContext context) {
         return true;
     }
 }

@@ -18,7 +18,6 @@ multiple search paths:
 
 Only difference is that for multiple the searchPath key is pluralized to searchPaths and expects an Ion sequence of
 search paths
-
 */
 
 // zero search paths ---------------------------------------------------------------------
@@ -128,7 +127,11 @@ search paths
 { searchPath: (* *), data: {f1: 1, f2: {f3: 2}}, expected: [2] }
 
 // escape annotation is only valid as the first annotation
-{ searchPath: (foo::'$ion_extractor_field'::*), data: [1, 2], expected: [1, 2]}
+{
+    searchPath: (foo::'$ion_extractor_field'::*),
+    data: [foo::'$ion_extractor_field'::1, foo::'$ion_extractor_field'::2],
+    expected: [foo::'$ion_extractor_field'::1, foo::'$ion_extractor_field'::2]
+}
 
 // insufficient depth
 { searchPath: (* *), data: [1],            expected: [] }
@@ -244,3 +247,28 @@ search paths
 { searchPaths: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
 
 { searchPaths: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
+
+// With annotations ----------------------------------------------------------------------
+{ searchPath: A::(), data: A::1, expected: [A::1] }
+{ searchPath: A::(), data: 1, expected: [] }
+{
+  searchPath: A::(foo),
+  data: $datagram::[
+    A::{bar: 1},
+    A::{foo: 2},
+    {foo: 3}
+  ],
+  expected: [2]
+}
+
+{ searchPath: (A::'*'), data: [A::1, 2], expected: [A::1] }
+{ searchPath: ('$ion_extractor_field'::*), data: {'*': A::1, foo: 2}, expected: [A::1]}
+{ searchPath: (A::B::C::*), data: [A::B::C::1, B::A::C::2], expected: [A::B::C::1] }
+{
+  searchPath: (foo A::2 bar),
+  data: {
+    foo: [0, 1, A::{bar: 1}],
+    foo: [0, 1, {bar: 2}]
+  },
+  expected: [1]
+}
