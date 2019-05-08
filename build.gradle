@@ -49,7 +49,7 @@ repositories {
 
 group 'com.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
-version '1.2.0-SNAPSHOT'
+version '1.2.0'
 
 sourceCompatibility = 1.8
 
@@ -63,8 +63,8 @@ dependencies {
     compile "com.amazon.ion:ion-java:$ionVersion"
 
     // using kotlin to make tests less verbose
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
 
     // JUnit 5
     testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
@@ -168,4 +168,3 @@ publishing {
 signing {
     sign publishing.publications.mavenJava
 }
-
