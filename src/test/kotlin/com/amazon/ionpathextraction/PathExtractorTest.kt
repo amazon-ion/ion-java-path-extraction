@@ -11,18 +11,18 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction
+package com.amazon.ionpathextraction
 
 import com.amazon.ion.*
 import com.amazon.ion.system.IonSystemBuilder
+import com.amazon.ionpathextraction.exceptions.PathExtractionException
+import com.amazon.ionpathextraction.pathcomponents.PathComponent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.ionpathextraction.exceptions.PathExtractionException
-import software.amazon.ionpathextraction.pathcomponents.PathComponent
 import java.io.File
 import java.util.stream.Stream
 import kotlin.test.assertTrue

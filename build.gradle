@@ -47,7 +47,7 @@ repositories {
     mavenCentral()
 }
 
-group 'software.amazon.ion'
+group 'com.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
 version '1.2.0-SNAPSHOT'
 

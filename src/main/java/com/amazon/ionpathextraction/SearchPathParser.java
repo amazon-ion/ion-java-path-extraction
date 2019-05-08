@@ -11,25 +11,25 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction;
+package com.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonType;
 import com.amazon.ion.IonWriter;
 import com.amazon.ion.system.IonReaderBuilder;
 import com.amazon.ion.system.IonTextWriterBuilder;
+import com.amazon.ionpathextraction.exceptions.PathExtractionException;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.pathcomponents.Index;
+import com.amazon.ionpathextraction.pathcomponents.PathComponent;
+import com.amazon.ionpathextraction.pathcomponents.Text;
+import com.amazon.ionpathextraction.pathcomponents.Wildcard;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import software.amazon.ionpathextraction.exceptions.PathExtractionException;
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.pathcomponents.Index;
-import software.amazon.ionpathextraction.pathcomponents.PathComponent;
-import software.amazon.ionpathextraction.pathcomponents.Text;
-import software.amazon.ionpathextraction.pathcomponents.Wildcard;
 
 /**
  * Parses a search path ion expression into a {@link SearchPath}s.

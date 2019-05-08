@@ -11,38 +11,32 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.pathcomponents;
+package com.amazon.ionpathextraction.pathcomponents;
 
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.internal.MatchContext;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.internal.MatchContext;
 
 /**
- * Index path component matches collection by position, example.
+ * Wildcard path component matches any value, example.
  * <pre>
  * data: {foo: [1,2,3], bar: { baz: [1] }}
  *
  * search path | callback invoked with reader at
  * ------------|--------------------
- *  (0)        | [1, 2, 3]
- *  (0 2)      | 3
+ *  (*)        | [1, 2, 3] and { baz: [1] }
+ *  (* *)      | 1, 2, 3 and [1]
  * </pre>
  */
-public final class Index extends PathComponent {
+public final class Wildcard extends PathComponent {
 
-    private final int ordinal;
+    public static final String TEXT = "*";
 
-    /**
-     * Constructor.
-     *
-     * @param ordinal component ordinal.
-     */
-    public Index(final int ordinal, final String[] annotations) {
+    public Wildcard(final String[] annotations) {
         super(new Annotations(annotations));
-        this.ordinal = ordinal;
     }
 
     @Override
     public boolean innerMatches(final MatchContext context) {
-        return ordinal == context.getReaderContainerIndex();
+        return true;
     }
 }

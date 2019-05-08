@@ -11,18 +11,18 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction;
+package com.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
 import com.amazon.ion.IonReader;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.internal.PathExtractorConfig;
+import com.amazon.ionpathextraction.pathcomponents.PathComponent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.internal.PathExtractorConfig;
-import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * {@link PathExtractor} builder.

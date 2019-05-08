@@ -11,7 +11,7 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.benchmarks;
+package com.amazon.ionpathextraction.benchmarks;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonSystem;
@@ -20,6 +20,8 @@ import com.amazon.ion.system.IonBinaryWriterBuilder;
 import com.amazon.ion.system.IonReaderBuilder;
 import com.amazon.ion.system.IonSystemBuilder;
 import com.amazon.ion.system.IonTextWriterBuilder;
+import com.amazon.ionpathextraction.PathExtractor;
+import com.amazon.ionpathextraction.PathExtractorBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,8 +35,6 @@ import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import software.amazon.ionpathextraction.PathExtractor;
-import software.amazon.ionpathextraction.PathExtractorBuilder;
 
 /**
  * Benchmarks comparing the PathExtractor with fully materializing the DOM.
