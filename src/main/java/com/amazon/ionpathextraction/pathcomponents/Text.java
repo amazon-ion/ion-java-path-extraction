@@ -11,13 +11,13 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.pathcomponents;
+package com.amazon.ionpathextraction.pathcomponents;
 
-import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
-import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.internal.MatchContext;
+import com.amazon.ion.IonReader;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * Text path component matches struct field names, example.

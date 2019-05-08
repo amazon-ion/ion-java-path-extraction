@@ -11,7 +11,7 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.exceptions;
+package com.amazon.ionpathextraction.exceptions;
 
 /**
  * Base exception.

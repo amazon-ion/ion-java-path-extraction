@@ -11,12 +11,12 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction.pathcomponents;
+package com.amazon.ionpathextraction.pathcomponents;
 
-import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.internal.MatchContext;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.internal.MatchContext;
 
 /**
  * A search path component, for example the path (foo * 1) has three components.

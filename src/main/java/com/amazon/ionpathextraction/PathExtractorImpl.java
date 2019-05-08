@@ -11,19 +11,19 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction;
+package com.amazon.ionpathextraction;
 
-import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
-import static software.amazon.ionpathextraction.internal.Preconditions.checkState;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
+import com.amazon.ion.IonReader;
+import com.amazon.ion.IonType;
+import com.amazon.ionpathextraction.internal.MatchContext;
+import com.amazon.ionpathextraction.internal.PathExtractorConfig;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import software.amazon.ion.IonReader;
-import software.amazon.ion.IonType;
-import software.amazon.ionpathextraction.internal.MatchContext;
-import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 
 /**
  * <p>

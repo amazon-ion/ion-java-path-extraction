@@ -11,14 +11,14 @@
  * language governing permissions and limitations under the License.
  */
 
-package software.amazon.ionpathextraction;
+package com.amazon.ionpathextraction;
 
+import com.amazon.ion.IonReader;
+import com.amazon.ionpathextraction.internal.Annotations;
+import com.amazon.ionpathextraction.internal.MatchContext;
+import com.amazon.ionpathextraction.pathcomponents.PathComponent;
 import java.util.List;
 import java.util.function.BiFunction;
-import software.amazon.ion.IonReader;
-import software.amazon.ionpathextraction.internal.Annotations;
-import software.amazon.ionpathextraction.internal.MatchContext;
-import software.amazon.ionpathextraction.pathcomponents.PathComponent;
 
 /**
  * A path which is provided to the extractor for matching.

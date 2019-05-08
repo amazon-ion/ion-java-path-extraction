@@ -1,8 +1,8 @@
 ## Ion Java Path Extraction
 
 [![Build Status](https://travis-ci.org/amzn/ion-java-path-extraction.svg?branch=master)](https://travis-ci.org/amzn/ion-java-path-extraction)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction/badge.svg)](https://maven-badges.herokuapp.com/maven-central/software.amazon.ion/ion-java-path-extraction)
-[![Javadocs](https://www.javadoc.io/badge/software.amazon.ion/ion-java-path-extraction.svg)](https://www.javadoc.io/doc/software.amazon.ion/ion-java-path-extraction)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.amazon.ion/ion-java-path-extraction/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.amazon.ion/ion-java-path-extraction)
+[![Javadocs](https://www.javadoc.io/badge/com.amazon.ion/ion-java-path-extraction.svg)](https://www.javadoc.io/doc/com.amazon.ion/ion-java-path-extraction)
 
 Ion Path Extraction API aims to combine the convenience of a DOM API with the speed of a streaming API.
 
@@ -20,7 +20,7 @@ Path extractor works in two phases:
 2. Notification
 
 ### Search Paths
-A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of [PathComponent](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/pathcomponents/PathComponent.html)s
+A `SearchPath` is a path provided to the extractor for matching. It's composed of a list of [PathComponent](https://static.javadoc.io/com.amazon.ion/ion-java-path-extraction/1.0.1/com/amazon/ionpathextraction/pathcomponents/PathComponent.html)s
 which can be one of:
 * Wildcard: matches all values.
 * Index: match the value at that index.
@@ -61,7 +61,7 @@ PathExtractorBuilder.standard()
                     .build()
 ```
 
-see PathExtractorBuilder [javadoc](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/PathExtractorBuilder.html) for more information on configuration options and search path registration.
+see PathExtractorBuilder [javadoc](https://static.javadoc.io/com.amazon.ion/ion-java-path-extraction/1.0.1/com/amazon/ionpathextraction/PathExtractorBuilder.html) for more information on configuration options and search path registration.
 
 ### Notification
 Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective
@@ -151,7 +151,7 @@ pathExtractor.match(ionReader, list);
 assertEquals("[1, 2, 20]", list.toString());
 ```
 
-`PathExtractorBuilder#withSearchPath` [javadoc](https://static.javadoc.io/software.amazon.ion/ion-java-path-extraction/1.0.1/software/amazon/ionpathextraction/PathExtractorBuilder.html#withSearchPath-java.lang.String-java.util.function.Function-)
+`PathExtractorBuilder#withSearchPath` [javadoc](https://static.javadoc.io/com.amazon.ion/ion-java-path-extraction/1.0.1/com/amazon/ionpathextraction/PathExtractorBuilder.html#withSearchPath-java.lang.String-java.util.function.Function-)
 
 ## Benchmark
 
@@ -165,7 +165,7 @@ binary file is ~81M and the text file ~95M. There are four benchmarks types:
 1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.a
 1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
 
-There is a binary and a text version for all four benchmark types. See the [PathExtractorBenchmark](https://github.com/amzn/ion-java-path-extraction/blob/master/src/jmh/java/software/amazon/ionpathextraction/benchmarks/PathExtractorBenchmark.java) class for
+There is a binary and a text version for all four benchmark types. See the [PathExtractorBenchmark](https://github.com/amzn/ion-java-path-extraction/blob/master/src/jmh/java/com/amazon/ionpathextraction/benchmarks/PathExtractorBenchmark.java) class for
 more details.
 
 To execute the benchmarks run: `gradle --no-daemon jmh`, requires an internet connection as it downloads the data set.
