@@ -13,7 +13,7 @@
 
 buildscript {
     ext.ionVersion = "[1.2,)"
-    ext.kotlin_version = "[1.2,)"
+    ext.kotlinVersion = "[1.2,)"
     ext.junitVersion = "[5.3,)"
 
     repositories {
@@ -24,7 +24,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
