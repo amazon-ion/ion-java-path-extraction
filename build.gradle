@@ -41,6 +41,12 @@ plugins {
     id "signing"
 }
 
+// Dependencies --------------------------------------------------------------
+
+repositories {
+    mavenCentral()
+}
+
 group 'software.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
 version '1.2.0-SNAPSHOT'
@@ -52,6 +58,20 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         jvmTarget = "1.8"
     }
 }
+
+dependencies {
+    compile "com.amazon.ion:ion-java:$ionVersion"
+
+    // using kotlin to make tests less verbose
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+
+    // JUnit 5
+    testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+}
+
 
 test {
     useJUnitPlatform()
@@ -149,21 +169,3 @@ signing {
     sign publishing.publications.mavenJava
 }
 
-// Dependencies --------------------------------------------------------------
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile "com.amazon.ion:ion-java:$ionVersion"
-
-    // using kotlin to make tests less verbose
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-
-    // JUnit 5
-    testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-}
