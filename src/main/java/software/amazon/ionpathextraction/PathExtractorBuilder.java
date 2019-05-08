@@ -15,11 +15,11 @@ package software.amazon.ionpathextraction;
 
 import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
+import com.amazon.ion.IonReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import software.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.PathExtractorConfig;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;

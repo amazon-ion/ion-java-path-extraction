@@ -15,15 +15,15 @@ package software.amazon.ionpathextraction;
 
 import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
+import com.amazon.ion.IonReader;
+import com.amazon.ion.IonType;
+import com.amazon.ion.IonWriter;
+import com.amazon.ion.system.IonReaderBuilder;
+import com.amazon.ion.system.IonTextWriterBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import software.amazon.ion.IonReader;
-import software.amazon.ion.IonType;
-import software.amazon.ion.IonWriter;
-import software.amazon.ion.system.IonReaderBuilder;
-import software.amazon.ion.system.IonTextWriterBuilder;
 import software.amazon.ionpathextraction.exceptions.PathExtractionException;
 import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.pathcomponents.Index;

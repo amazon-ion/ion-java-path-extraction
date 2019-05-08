@@ -15,7 +15,7 @@ package software.amazon.ionpathextraction.pathcomponents;
 
 import static software.amazon.ionpathextraction.internal.Preconditions.checkArgument;
 
-import software.amazon.ion.IonReader;
+import com.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 

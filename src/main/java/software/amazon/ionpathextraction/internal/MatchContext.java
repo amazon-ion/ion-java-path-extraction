@@ -13,7 +13,7 @@
 
 package software.amazon.ionpathextraction.internal;
 
-import software.amazon.ion.IonReader;
+import com.amazon.ion.IonReader;
 
 /**
  * <p>

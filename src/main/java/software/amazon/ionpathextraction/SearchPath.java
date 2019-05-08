@@ -13,9 +13,9 @@
 
 package software.amazon.ionpathextraction;
 
+import com.amazon.ion.IonReader;
 import java.util.List;
 import java.util.function.BiFunction;
-import software.amazon.ion.IonReader;
 import software.amazon.ionpathextraction.internal.Annotations;
 import software.amazon.ionpathextraction.internal.MatchContext;
 import software.amazon.ionpathextraction.pathcomponents.PathComponent;

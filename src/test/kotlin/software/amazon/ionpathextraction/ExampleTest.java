@@ -15,14 +15,14 @@ package software.amazon.ionpathextraction;
 
 import static org.junit.Assert.assertEquals;
 
+import com.amazon.ion.IonReader;
+import com.amazon.ion.system.IonReaderBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.Test;
-import software.amazon.ion.IonReader;
-import software.amazon.ion.system.IonReaderBuilder;
 
 /**
  * Test the example code in README.md

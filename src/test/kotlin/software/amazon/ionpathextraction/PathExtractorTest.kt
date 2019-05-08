@@ -13,14 +13,14 @@
 
 package software.amazon.ionpathextraction
 
+import com.amazon.ion.*
+import com.amazon.ion.system.IonSystemBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.ion.*
-import software.amazon.ion.system.IonSystemBuilder
 import software.amazon.ionpathextraction.exceptions.PathExtractionException
 import software.amazon.ionpathextraction.pathcomponents.PathComponent
 import java.io.File

@@ -24,9 +24,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "software.amazon.ion:ion-java:$ionVersion"
     }
 }
 
@@ -158,7 +156,7 @@ repositories {
 }
 
 dependencies {
-    compile "software.amazon.ion:ion-java:$ionVersion"
+    compile "com.amazon.ion:ion-java:$ionVersion"
 
     // using kotlin to make tests less verbose
     testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
