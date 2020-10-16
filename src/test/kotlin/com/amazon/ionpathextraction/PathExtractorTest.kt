@@ -18,12 +18,15 @@ import com.amazon.ion.system.IonSystemBuilder
 import com.amazon.ionpathextraction.exceptions.PathExtractionException
 import com.amazon.ionpathextraction.pathcomponents.PathComponent
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
+import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.test.assertTrue
 
@@ -34,7 +37,8 @@ class PathExtractorTest {
         data class TestCase(val searchPaths: List<String>,
                             val data: String,
                             val expected: IonList,
-                            val stepOutNumber: Int) {
+                            val stepOutNumber: Int,
+                            val hasMultipleTopLevelValues: Boolean) {
             override fun toString(): String = "SearchPaths=$searchPaths, " +
                     "Data=$data, " +
                     "Expected=$expected, " +
@@ -73,9 +77,26 @@ class PathExtractorTest {
                                     searchPaths,
                                     struct["data"].toText(),
                                     struct["expected"] as IonList,
-                                    struct["stepOutN"]?.let { (it as IonInt).intValue() } ?: 0
+                                    struct["stepOutN"]?.let { (it as IonInt).intValue() } ?: 0,
+                                    struct["data"].hasTypeAnnotation("${'$'}datagram")
                             )
                         }.stream()
+
+        enum class API {
+            MATCH {
+                override fun <T> match(extractor: PathExtractor<T>, reader: IonReader, context: T?) {
+                    extractor.match(reader, context)
+                }
+            },
+            MATCH_CURRENT_VALUE {
+                override fun <T> match(extractor: PathExtractor<T>, reader: IonReader, context: T?) {
+                    reader.next()
+                    extractor.matchCurrentValue(reader, context)
+                }
+            };
+
+            abstract fun <T> match(extractor: PathExtractor<T>, reader: IonReader, context: T? = null)
+        }
     }
 
     private val emptyCallback: (IonReader) -> Int = { 0 }
@@ -100,8 +121,31 @@ class PathExtractorTest {
         assertEquals(testCase.expected, out, testCase.toString())
     }
 
-    @Test
-    fun testCorrectCallbackCalled() {
+    @ParameterizedTest
+    @MethodSource("testCases")
+    fun testSearchPathsMatchCurrentValue(testCase: TestCase) {
+        if (testCase.hasMultipleTopLevelValues) {
+            // For simplicity, skip tests with multiple top-level values. This will be tested via other test methods.
+            return
+        }
+        val builder = PathExtractorBuilder.standard<IonList>()
+
+        testCase.searchPaths.forEach { builder.withSearchPath(it, collectToIonList(testCase.stepOutNumber)) }
+        val extractor = builder.build()
+
+        val out = ION.newEmptyList()
+        val reader = ION.newReader(testCase.data)
+        reader.next()
+        val depth = reader.depth
+        extractor.matchCurrentValue(reader, out)
+
+        assertEquals(depth, reader.depth)
+        assertEquals(testCase.expected, out, testCase.toString())
+    }
+
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun testCorrectCallbackCalled(api: API) {
         var timesCallback1Called = 0
         var timesCallback2Called = 0
 
@@ -116,7 +160,7 @@ class PathExtractorTest {
                 }
                 .build()
 
-        extractor.match(ION.newReader("{ bar: 1, bar: 2, foo: 3 }"))
+        api.match(extractor, ION.newReader("{ bar: 1, bar: 2, foo: 3 }"))
 
         assertAll(
                 { assertEquals(1, timesCallback1Called) },
@@ -125,7 +169,47 @@ class PathExtractorTest {
     }
 
     @Test
-    fun readerAtInvalidDepth() {
+    fun matchCurrentValueOnlyMatchesCurrentValue() {
+        val extractor1 = PathExtractorBuilder.standard<IonList>()
+                .withSearchPath("(foo)", collectToIonList(0))
+                .build()
+        val extractor2 = PathExtractorBuilder.standard<IonList>()
+                .withSearchPath("(*)", collectToIonList(1))
+                .withMatchRelativePaths(true)
+                .build()
+
+        val reader = ION.newReader("{foo: 123, foo: [456]} {bar: [42, 43, 44]} end")
+        val out = ION.newEmptyList()
+        assertEquals(IonType.STRUCT, reader.next())
+        extractor1.matchCurrentValue(reader, out)
+        assertEquals(ION.singleValue("[123, [456]]"), out)
+        assertEquals(IonType.STRUCT, reader.next())
+        reader.stepIn()
+        assertEquals(IonType.LIST, reader.next())
+        assertEquals("bar", reader.fieldName)
+        extractor2.matchCurrentValue(reader, out)
+        assertEquals(ION.singleValue("[123, [456], 42]"), out)
+        assertEquals(1, reader.depth)
+        reader.stepOut()
+        assertEquals(IonType.SYMBOL, reader.next())
+        assertEquals("end", reader.stringValue())
+        assertNull(reader.next())
+    }
+
+    @Test
+    fun matchCurrentValueWhenNotPositionedOnValueFails() {
+        val extractor = PathExtractorBuilder.standard<Any>()
+                .withSearchPath("(foo)") { _ -> 0 }
+                .build()
+
+        val reader = ION.newReader("[{foo: 1}]")
+        val exception = assertThrows<PathExtractionException> { extractor.matchCurrentValue(reader) }
+        assertEquals("reader must be positioned at a value; call IonReader.next() first.", exception.message)
+    }
+
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun readerAtInvalidDepth(api: API) {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withSearchPath("(foo)") { _ -> 0 }
                 .build()
@@ -134,12 +218,13 @@ class PathExtractorTest {
         assertTrue(reader.next() != null)
         reader.stepIn()
 
-        val exception = assertThrows<PathExtractionException> { extractor.match(reader) }
+        val exception = assertThrows<PathExtractionException> { api.match(extractor, reader) }
         assertEquals("reader must be at depth zero, it was at:1", exception.message)
     }
 
-    @Test
-    fun matchRelative() {
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun matchRelative(api: API) {
         val extractor = PathExtractorBuilder.standard<IonList>()
                 .withMatchRelativePaths(true)
                 .withSearchPath("(foo)", collectToIonList(0))
@@ -150,40 +235,47 @@ class PathExtractorTest {
         reader.stepIn()
 
         val out = ION.newEmptyList()
-        extractor.match(reader, out)
+        api.match(extractor, reader, out)
 
         assertEquals(ION.singleValue("[1]"), out)
     }
 
-    @Test
-    fun caseInsensitive() {
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun caseInsensitive(api: API) {
         val extractor = PathExtractorBuilder.standard<IonList>()
                 .withMatchCaseInsensitive(true)
                 .withSearchPath("(foo)", collectToIonList(0))
                 .build()
 
         val out = ION.newEmptyList()
-        extractor.match(ION.newReader("{FOO: 1}{foo: 2}{fOo: 3}{bar: 4}"), out)
+        api.match(extractor, ION.newReader("{FOO: 1, foO: 2}{foo: 3}{fOo: 4}{bar: 5}"), out)
 
-        assertEquals(ION.singleValue("[1,2,3]"), out)
+        if (api == API.MATCH_CURRENT_VALUE) {
+            assertEquals(ION.singleValue("[1,2]"), out)
+        } else {
+            assertEquals(ION.singleValue("[1,2,3,4]"), out)
+        }
     }
 
-    @Test
-    fun stepOutMoreThanPermitted() {
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun stepOutMoreThanPermitted(api: API) {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withSearchPath("(foo)") { _ -> 200 }
                 .build()
 
         val exception = assertThrows<PathExtractionException> {
-            extractor.match(ION.newReader("{foo: 1}"))
+            api.match(extractor, ION.newReader("{foo: 1}"))
         }
 
         assertEquals("Callback return cannot be greater than the reader current relative depth. " +
                 "return: 200, relative reader depth: 1", exception.message)
     }
 
-    @Test
-    fun stepOutMoreThanPermittedWithRelative() {
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun stepOutMoreThanPermittedWithRelative(api: API) {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withMatchRelativePaths(true)
                 // even though you could step out twice in reader you can't given the initial reader depth
@@ -195,15 +287,16 @@ class PathExtractorTest {
         newReader.stepIn() // positioned at the beginning of {bar: 1}
 
         val exception = assertThrows<PathExtractionException> {
-            extractor.match(newReader)
+            api.match(extractor, newReader)
         }
 
         assertEquals("Callback return cannot be greater than the reader current relative depth. return: 2, " +
                 "relative reader depth: 1", exception.message)
     }
 
-    @Test
-    fun nestedSearchPaths() {
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun nestedSearchPaths(api: API) {
         // Test only that the correct callbacks were called as reading the value for (foo)
         // will advance the reader making (foo bar) not match
 
@@ -222,7 +315,7 @@ class PathExtractorTest {
             }
         }.build()
 
-        extractor.match(ION.newReader("{foo: {bar: 1}}"))
+        api.match(extractor, ION.newReader("{foo: {bar: 1}}"))
 
         assertEquals(3, counter.size)
         assertEquals(1, counter["()"])
