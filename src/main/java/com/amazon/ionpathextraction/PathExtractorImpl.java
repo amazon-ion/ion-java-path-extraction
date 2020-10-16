@@ -72,48 +72,82 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
 
         final Tracker<T> tracker = new Tracker<>(maxSearchPathDepth, searchPaths, reader.getDepth());
 
-        matchRecursive(reader, tracker, context);
+        matchAllValuesRecursive(reader, tracker, context);
     }
 
-    private int matchRecursive(final IonReader reader, final Tracker<T> tracker, final T context) {
+    @Override
+    public void matchCurrentValue(final IonReader reader) {
+        matchCurrentValue(reader, null);
+    }
+
+    @Override
+    public void matchCurrentValue(final IonReader reader, final T context) {
+        checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
+            "reader must be at depth zero, it was at:" + reader.getDepth());
+        checkArgument(reader.getType() != null,
+            "reader must be positioned at a value; call IonReader.next() first.");
+
+        // short circuit when there are zero SearchPaths
+        if (searchPaths.isEmpty()) {
+            return;
+        }
+
+        final Tracker<T> tracker = new Tracker<>(maxSearchPathDepth, searchPaths, reader.getDepth());
+        matchCurrentValueRecursive(reader, tracker, context, 0, tracker.getCurrentDepth());
+    }
+
+    private int matchCurrentValueRecursive(
+        final IonReader reader,
+        final Tracker<T> tracker,
+        final T context,
+        final int readerContainerIndex,
+        final int currentDepth
+    ) {
+        // will continue to next depth
+        final List<SearchPath<T>> partialMatches = new ArrayList<>();
+
+        for (SearchPath<T> sp : tracker.activePaths()) {
+            final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
+            // a terminal search path is at the last path component meaning that if this search path partially
+            // matches it will be a full match and the callback must be invoked
+            boolean searchPathIsTerminal = isTerminal(tracker.getCurrentDepth(), sp);
+            boolean partialMatch = sp.partialMatchAt(matchContext);
+
+            if (partialMatch) {
+                if (searchPathIsTerminal) {
+                    int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
+                    if (stepOutTimes > 0) {
+                        return stepOutTimes;
+                    }
+                } else {
+                    partialMatches.add(sp);
+                }
+            }
+        }
+
+        if (IonType.isContainer(reader.getType()) && !partialMatches.isEmpty()) {
+            tracker.push(partialMatches);
+            reader.stepIn();
+            int stepOutTimes = matchAllValuesRecursive(reader, tracker, context);
+            reader.stepOut();
+            tracker.pop();
+
+            if (stepOutTimes > 0) {
+                return stepOutTimes;
+            }
+        }
+        return 0;
+    }
+
+    private int matchAllValuesRecursive(final IonReader reader, final Tracker<T> tracker, final T context) {
         final int currentDepth = tracker.getCurrentDepth();
         int readerContainerIndex = 0;
 
         while (reader.next() != null) {
-            // will continue to next depth
-            final List<SearchPath<T>> partialMatches = new ArrayList<>();
-
-            for (SearchPath<T> sp : tracker.activePaths()) {
-                final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
-                // a terminal search path is at the last path component meaning that if this search path partially
-                // matches it will be a full match and the callback must be invoked
-                boolean searchPathIsTerminal = isTerminal(tracker.getCurrentDepth(), sp);
-                boolean partialMatch = sp.partialMatchAt(matchContext);
-
-                if (partialMatch) {
-                    if (searchPathIsTerminal) {
-                        int stepOutTimes = invokeCallback(reader, sp, tracker.getInitialReaderDepth(), context);
-                        if (stepOutTimes > 0) {
-                            return stepOutTimes - 1;
-                        }
-                    } else {
-                        partialMatches.add(sp);
-                    }
-                }
+            int stepOutTimes = matchCurrentValueRecursive(reader, tracker, context, readerContainerIndex, currentDepth);
+            if (stepOutTimes > 0) {
+                return stepOutTimes - 1;
             }
-
-            if (IonType.isContainer(reader.getType()) && !partialMatches.isEmpty()) {
-                tracker.push(partialMatches);
-                reader.stepIn();
-                int stepOutTimes = matchRecursive(reader, tracker, context);
-                reader.stepOut();
-                tracker.pop();
-
-                if (stepOutTimes > 0) {
-                    return stepOutTimes - 1;
-                }
-            }
-
             readerContainerIndex += 1;
         }
 
