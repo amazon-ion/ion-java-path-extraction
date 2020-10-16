@@ -62,7 +62,7 @@ public interface PathExtractor<T> {
     void matchCurrentValue(final IonReader reader);
 
     /**
-     * Behaves identically to {@link #match(IonReader, T)}, except that only the value at which the given reader is
+     * Behaves identically to {@link #match(IonReader, Object)}, except that only the value at which the given reader is
      * currently positioned is evaluated against the registered search paths. Before this method is called, the caller
      * must position the given reader on the value to be searched using {@link IonReader#next()}. After this method
      * returns, it is the caller's responsibility to call {@link IonReader#next()} to position the reader on the next
