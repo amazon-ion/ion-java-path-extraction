@@ -49,7 +49,7 @@ repositories {
 
 group 'com.amazon.ion'
 archivesBaseName = 'ion-java-path-extraction'
-version '1.3.0'
+version '1.4.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
