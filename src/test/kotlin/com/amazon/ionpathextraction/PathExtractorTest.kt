@@ -14,7 +14,7 @@
 package com.amazon.ionpathextraction
 
 import com.amazon.ion.*
-import com.amazon.ion.system.IonSystemBuilder
+import com.amazon.ion.system.*
 import com.amazon.ionpathextraction.exceptions.PathExtractionException
 import com.amazon.ionpathextraction.pathcomponents.PathComponent
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,8 +25,9 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.test.assertTrue
 
@@ -370,5 +371,26 @@ class PathExtractorTest {
         }
 
         assertEquals("ionPathExpression must be a s-expression or list", exception.message)
+    }
+
+    private fun newReader(value: IonValue, isBinary: Boolean): IonReader {
+        val baos = ByteArrayOutputStream()
+        val ionWriter = if (isBinary) IonBinaryWriterBuilder.standard().build(baos) else IonTextWriterBuilder.standard().build(baos)
+        value.writeTo(ionWriter)
+        ionWriter.close()
+        return IonReaderBuilder.standard().build(baos.toByteArray())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["binary", "text"])
+    fun evaluateSecondPathOnTheSameValueAfterTheFirstPathMatches(encoding: String) {
+        val value = ION.singleValue("{col1:\"foo\", col2:[{col21:\"bar\",col22:12}]}") as IonStruct
+        val ionReader = newReader(value, encoding == "binary")
+        val extractor = PathExtractorBuilder.standard<Any>().withSearchPath("(col2)") { ionReader1: IonReader? ->
+            val actualData = ION.newValue(ionReader1)
+            assertEquals(value["col2"], actualData)
+            0
+        }.withSearchPath("(col1)") { _ -> 0 }.build()
+        extractor.match(ionReader)
     }
 }

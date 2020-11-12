@@ -106,8 +106,8 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
         // will continue to next depth
         final List<SearchPath<T>> partialMatches = new ArrayList<>();
 
+        final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
         for (SearchPath<T> sp : tracker.activePaths()) {
-            final MatchContext matchContext = new MatchContext(reader, currentDepth, readerContainerIndex, config);
             // a terminal search path is at the last path component meaning that if this search path partially
             // matches it will be a full match and the callback must be invoked
             boolean searchPathIsTerminal = isTerminal(tracker.getCurrentDepth(), sp);
