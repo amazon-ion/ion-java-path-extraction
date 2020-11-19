@@ -90,7 +90,7 @@ jmh {
 }
 
 checkstyle {
-    toolVersion = "8.18"
+    toolVersion = "8.37"
     ignoreFailures = false
     maxWarnings = 0
     maxErrors = 0
