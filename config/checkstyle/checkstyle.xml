@@ -36,6 +36,10 @@
     <property name="fileExtensions" value="java,kt" />
   </module>
 
+  <module name="LineLength">
+    <property name="max" value="120"/>
+    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+  </module>
   <module name="TreeWalker">
     <module name="SuppressionCommentFilter" /> <!-- allows for CHECKSTYLE:OFF comments -->
     <module name="OuterTypeFilename"/>
@@ -50,10 +54,6 @@
       <property name="allowEscapesForControlCharacters" value="true"/>
       <property name="allowByTailComment" value="true"/>
       <property name="allowNonPrintableEscapes" value="true"/>
-    </module>
-    <module name="LineLength">
-      <property name="max" value="120"/>
-      <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
     <module name="AvoidStarImport"/>
     <module name="OneTopLevelClass"/>
@@ -238,15 +238,17 @@
       <property name="target"
         value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
     </module>
+    <module name="MissingJavadocMethodCheck">
+      <property name="minLineCount" value="2"/>
+      <property name="ignoreMethodNamesRegex" value="(g|s)et[a-z0-9][a-zA-Z0-9_]*"/> <!-- getters and setters -->
+      <property name="allowedAnnotations" value="Override, Test"/>
+    </module>
     <module name="JavadocMethod">
       <property name="scope" value="public"/>
       <property name="allowMissingParamTags" value="true"/>
-      <property name="allowMissingThrowsTags" value="true"/>
+      <property name="validateThrows" value="false"/>
       <property name="allowMissingReturnTag" value="true"/>
-      <property name="minLineCount" value="2"/>
       <property name="allowedAnnotations" value="Override, Test"/>
-      <property name="allowThrowsTagsForSubclasses" value="true"/>
-      <property name="ignoreMethodNamesRegex" value="(g|s)et[a-z0-9][a-zA-Z0-9_]*"/> <!-- getters and setters -->
     </module>
     <module name="MethodName">
       <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
