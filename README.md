@@ -34,8 +34,8 @@ data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedVa
 (1)           - matches "myBarValue"
 (*)           - matches ["foo1", "foo2"], "myBarValue" and A::"annotatedValue"
 ()            - matches {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
-(foo bar)     - matches "myBarValue" and A::"annotatedValue"
-(foo A::bar)  - matches A::"annotatedValue"
+(bar)         - matches "myBarValue" and A::"annotatedValue"
+(A::bar)      - matches A::"annotatedValue"
 ```
 
 The `()` matcher matches all values in the stream but you can also use annotations with it, example:
