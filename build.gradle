@@ -13,7 +13,7 @@
 
 buildscript {
     ext.ionVersion = "[1.2,)"
-    ext.kotlinVersion = "[1.2,1.6["
+    ext.kotlinVersion = "[1.2,1.9]"
     ext.junitVersion = "[5.3,)"
 
     repositories {
@@ -31,10 +31,10 @@ buildscript {
 plugins {
     id "java"
     id "checkstyle"
-    id "org.jetbrains.kotlin.jvm" version "1.4.10"
+    id "org.jetbrains.kotlin.jvm" version "1.9.0"
 
     // benchmark
-    id "me.champeau.gradle.jmh" version "0.4.8"
+    id "me.champeau.jmh" version "0.7.2"
 
     // Deployment
     id "maven-publish"
@@ -60,16 +60,16 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 }
 
 dependencies {
-    compile "com.amazon.ion:ion-java:$ionVersion"
+    implementation "com.amazon.ion:ion-java:$ionVersion"
 
     // using kotlin to make tests less verbose
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
 
     // JUnit 5
-    testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 }
 
 
@@ -94,12 +94,11 @@ checkstyle {
     ignoreFailures = false
     maxWarnings = 0
     maxErrors = 0
-    configDir = file("$rootProject.projectDir/config/checkstyle")
+    configDirectory = file("$rootProject.projectDir/config/checkstyle")
 }
 tasks.withType(Checkstyle) {
     reports {
-        xml.enabled = false
-        html.enabled = true
+        html.required = true
     }
 }
 
@@ -108,12 +107,12 @@ tasks.withType(Checkstyle) {
 
 task sourcesJar(type: Jar) {
     from "src"
-    classifier = "sources"
+    archiveClassifier = "sources"
 }
 
 task javadocJar(type: Jar) {
     from javadoc
-    classifier = "javadoc"
+    archiveClassifier = "javadoc"
 }
 
 publishing {
