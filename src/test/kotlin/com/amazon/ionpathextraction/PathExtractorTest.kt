@@ -220,7 +220,7 @@ class PathExtractorTest {
         reader.stepIn()
 
         val exception = assertThrows<PathExtractionException> { api.match(extractor, reader) }
-        assertEquals("reader must be at depth zero, it was at:1", exception.message)
+        assertEquals("reader must be at depth zero, it was at: 1", exception.message)
     }
 
     @ParameterizedTest
@@ -256,6 +256,43 @@ class PathExtractorTest {
             assertEquals(ION.singleValue("[1,2]"), out)
         } else {
             assertEquals(ION.singleValue("[1,2,3,4]"), out)
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun caseInsensitiveWithSimilarFieldNames(api: API) {
+        val extractor = PathExtractorBuilder.standard<IonList>()
+            .withMatchCaseInsensitive(true)
+            .withSearchPath("(foo)", collectToIonList(0))
+            .withSearchPath("(Foo)", collectToIonList(0))
+            .build()
+
+        val out = ION.newEmptyList()
+        api.match(extractor, ION.newReader("{FOO: 1, foO: 2}{foo: 3}{fOo: 4}{bar: 5}"), out)
+
+        if (api == API.MATCH_CURRENT_VALUE) {
+            assertEquals(ION.singleValue("[1,1,2,2]"), out)
+        } else {
+            assertEquals(ION.singleValue("[1,1,2,2,3,3,4,4]"), out)
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(API::class)
+    fun caseInsensitiveAnnotations(api: API) {
+        val extractor = PathExtractorBuilder.standard<IonList>()
+            .withMatchCaseInsensitive(true)
+            .withSearchPath("A::()", collectToIonList(0))
+            .build()
+
+        val out = ION.newEmptyList()
+        api.match(extractor, ION.newReader("a::17 b::31 A::51"), out)
+
+        if (api == API.MATCH_CURRENT_VALUE) {
+            assertEquals(ION.singleValue("[a::17]"), out)
+        } else {
+            assertEquals(ION.singleValue("[a::17, A::51]"), out)
         }
     }
 

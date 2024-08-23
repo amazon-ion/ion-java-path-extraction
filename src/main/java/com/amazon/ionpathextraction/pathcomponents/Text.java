@@ -46,6 +46,10 @@ public final class Text extends PathComponent {
         this.fieldName = fieldName;
     }
 
+    public String getFieldName() {
+        return fieldName;
+    }
+
     @Override
     public boolean innerMatches(final MatchContext context) {
         final IonReader reader = context.getReader();
@@ -53,8 +57,13 @@ public final class Text extends PathComponent {
             return false;
         }
 
-        return context.getConfig().isMatchCaseInsensitive()
+        return context.getConfig().isMatchFieldsCaseInsensitive()
             ? fieldName.equalsIgnoreCase(reader.getFieldName())
             : fieldName.equals(reader.getFieldName());
+    }
+
+    @Override
+    public String toString() {
+        return fieldName;
     }
 }

@@ -17,6 +17,9 @@ import com.amazon.ion.IonReader;
 import com.amazon.ionpathextraction.internal.Annotations;
 import com.amazon.ionpathextraction.internal.MatchContext;
 import com.amazon.ionpathextraction.pathcomponents.PathComponent;
+import com.amazon.ionpathextraction.pathcomponents.Wildcard;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -47,6 +50,19 @@ final class SearchPath<T> {
     }
 
     /**
+     * Produces a "normalized" path for the SearchPath.
+     * Basically: the SearchPath has the annotations (or not) for matching top-level-values.
+     * The "normalized" path treats this as an explicit Wildcard step and adds it to the head
+     * of the PathComponents.
+     */
+    List<PathComponent> getNormalizedPath() {
+        List<PathComponent> normalizedPath = new ArrayList<>(pathComponents.size() + 1);
+        normalizedPath.add(new Wildcard(annotations));
+        normalizedPath.addAll(pathComponents);
+        return normalizedPath;
+    }
+
+    /**
      * Callback to be invoked when the Search Path is matched.
      */
     BiFunction<IonReader, T, Integer> getCallback() {
@@ -66,5 +82,19 @@ final class SearchPath<T> {
         }
 
         return false;
+    }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        // todo: annotations!
+        builder.append("(");
+        for (PathComponent pathComponent : pathComponents) {
+            builder.append(pathComponent.toString());
+            builder.append(" ");
+        }
+        builder.append(")");
+
+        return builder.toString();
     }
 }

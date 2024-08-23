@@ -35,6 +35,7 @@ public final class PathExtractorBuilder<T> {
     private final List<SearchPath<T>> searchPaths = new ArrayList<>();
     private boolean matchRelativePaths;
     private boolean matchCaseInsensitive;
+    private boolean matchFieldsCaseInsensitive;
 
     private PathExtractorBuilder() {
     }
@@ -48,19 +49,66 @@ public final class PathExtractorBuilder<T> {
         PathExtractorBuilder<T> builder = new PathExtractorBuilder<>();
         builder.matchCaseInsensitive = DEFAULT_CASE_INSENSITIVE;
         builder.matchRelativePaths = DEFAULT_MATCH_RELATIVE_PATHS;
+        builder.matchFieldsCaseInsensitive = DEFAULT_CASE_INSENSITIVE;
 
         return builder;
     }
 
     /**
      * Instantiates a thread safe {@link PathExtractor} configured by this builder.
+     * Attempts to build a "strict" PathExtractor which is much more performant, particularly
+     * for extractions with many field names. Falls back to the "legacy" implementation.
      *
+     * @see this.buildStrict() to ensure the more optimal implementation is used.
      * @return new {@link PathExtractor} instance.
      */
     public PathExtractor<T> build() {
-        return new PathExtractorImpl<>(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive));
+        try {
+            return buildStrict();
+        } catch (UnsupportedPathExpression e) {
+            return buildLegacy();
+        }
     }
 
+    /**
+     * Instantiate a "stricter" and more optimized PathExtractor.
+     * <br>
+     * Supports search paths where there is only one "variant" of step
+     * type from each parent step, and only one callback per state.
+     * Annotations matching is only supported on the root or wildcards.
+     * Case insensitivity is supported on field names, not annotations.
+     * <br>
+     * Examples of supported paths (and any combination of the below):
+     * `A::()`
+     * `(foo bar)`
+     * `(foo qux)`
+     * `(spam 0)`
+     * `(spam 1)`
+     * `(quid * quo)`
+     * `(lorem A::B::* ipsum)`
+     * <br>
+     * Examples of unsupported paths:
+     * `(a::foo)` annotations on field names not supported, yet.
+     * `(a::1)` annotations on index ordinals not supported, yet.
+     * `(foo bar) (foo 1) (foo *)` combination of field names, index ordinals or wildcards not supported.
+     * `a::() ()` combination of annotated and non-annotated root (or other wildcard) matching.
+     *
+     * @throws UnsupportedPathExpression if any search path or the paths combined, are not supported.
+     * @return new {@link PathExtractor} instance.
+     */
+    public PathExtractor<T> buildStrict() {
+        return FsmPathExtractor.create(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
+    }
+
+    /**
+     * Instantiate a "legacy" PathExtractor implementation.
+     * The returned PathExtractor is inefficient when a large number of field names is searched,
+     * but a wider variety of search paths are supported.
+     */
+    public PathExtractor<T> buildLegacy() {
+        return new PathExtractorImpl<>(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
+    }
+    
     /**
      * Sets matchRelativePaths config. When true the path extractor will accept readers at any depth, when false the
      * reader must be at depth zero.
@@ -78,8 +126,9 @@ public final class PathExtractorBuilder<T> {
     }
 
     /**
-     * Sets matchCaseInsensitive config. When true the path extractor will match fields ignoring case, when false the
-     * path extractor will mach respecting the path components case.
+     * Sets matchCaseInsensitive config. When true the path extractor will match fields _and annotations_ ignoring case.
+     * When false the path extractor will match respecting the path components case.
+     * To set case insensitivity for _only field names_ use the `withMatchFieldNamesCaseInsensitive` builder.
      *
      * <BR>
      * defaults to false.
@@ -89,6 +138,23 @@ public final class PathExtractorBuilder<T> {
      */
     public PathExtractorBuilder<T> withMatchCaseInsensitive(final boolean matchCaseInsensitive) {
         this.matchCaseInsensitive = matchCaseInsensitive;
+        this.matchFieldsCaseInsensitive = matchCaseInsensitive;
+
+        return this;
+    }
+
+    /**
+     * Sets matchFieldNamesCaseInsensitive config. When true the path extractor will match field names ignoring case.
+     * For example: 'Foo' will match 'foo'.
+     *
+     * <BR>
+     * defaults to false.
+     *
+     * @param matchCaseInsensitive new config value.
+     * @return builder for chaining.
+     */
+    public PathExtractorBuilder<T> withMatchFieldNamesCaseInsensitive(final boolean matchCaseInsensitive) {
+        this.matchFieldsCaseInsensitive = matchCaseInsensitive;
 
         return this;
     }
