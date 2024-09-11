@@ -189,7 +189,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
     private static class Tracker<T> {
 
         private final Deque<List<SearchPath<T>>> stack;
-        private int initialReaderDepth;
+        private final int initialReaderDepth;
 
         Tracker(final int size, final List<SearchPath<T>> searchPaths, final int initialReaderDepth) {
             stack = new ArrayDeque<>(size);

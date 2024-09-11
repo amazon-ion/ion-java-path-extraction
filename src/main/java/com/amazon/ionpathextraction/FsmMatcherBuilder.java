@@ -1,3 +1,16 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at:
+ *
+ *     http://aws.amazon.com/apache2.0/
+ *
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
+ */
+
 package com.amazon.ionpathextraction;
 
 import com.amazon.ion.IonReader;
@@ -6,7 +19,6 @@ import com.amazon.ionpathextraction.pathcomponents.Index;
 import com.amazon.ionpathextraction.pathcomponents.PathComponent;
 import com.amazon.ionpathextraction.pathcomponents.Text;
 import com.amazon.ionpathextraction.pathcomponents.Wildcard;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,13 +40,12 @@ import java.util.stream.Collectors;
  * Beyond that, there are some usage patterns which could be included, such as annotations filtering on
  * field names or ordinals, but for which there was no observed usage.
  */
-class FsmMatcherBuilder<T>
-{
+class FsmMatcherBuilder<T> {
     private final PathTreeNode root = new PathTreeNode();
     private final boolean caseInsensitiveAll;
     private final boolean caseInsensitiveFields;
 
-    FsmMatcherBuilder(boolean caseInsensitiveAll, boolean caseInsensitiveFields) {
+    FsmMatcherBuilder(final boolean caseInsensitiveAll, final boolean caseInsensitiveFields) {
         this.caseInsensitiveAll = caseInsensitiveAll;
         this.caseInsensitiveFields = caseInsensitiveFields;
     }
@@ -44,7 +55,7 @@ class FsmMatcherBuilder<T>
      *
      * @throws UnsupportedPathExpression if the SearchPath is not supported.
      */
-    void accept(SearchPath<T> searchPath) {
+    void accept(final SearchPath<T> searchPath) {
         List<PathComponent> steps = searchPath.getNormalizedPath();
         PathTreeNode currentNode = root;
         for (PathComponent step : steps) {
@@ -78,11 +89,11 @@ class FsmMatcherBuilder<T>
          * @return the new or existing node.
          * @throws UnsupportedPathExpression if the step contains path components that are not supported
          */
-        private PathTreeNode acceptStep(PathComponent step) {
+        private PathTreeNode acceptStep(final PathComponent step) {
             if (step.isAnnotated() && caseInsensitiveAll) {
                 throw new UnsupportedPathExpression(
-                        "Case Insensitive Matching of Annotations is not supported by this matcher.\n" +
-                            "Use the legacy matcher or set withMatchFieldNamesCaseInsensitive instead.");
+                        "Case Insensitive Matching of Annotations is not supported by this matcher.\n"
+                                + "Use the legacy matcher or set withMatchFieldNamesCaseInsensitive instead.");
             }
 
             PathTreeNode child;
@@ -118,7 +129,7 @@ class FsmMatcherBuilder<T>
             return child;
         }
 
-        private void setCallback(BiFunction<IonReader, T, Integer> callback) {
+        private void setCallback(final BiFunction<IonReader, T, Integer> callback) {
             if (this.callback == null) {
                 this.callback = callback;
             } else {
@@ -168,103 +179,96 @@ class FsmMatcherBuilder<T>
                 // That seems like a lot of complexity for a usage pattern of questionable value.
                 // So if you're reading this, and you think "oh this is a silly restriction", then take
                 // the time to understand why it's important to the path writer and reconsider accordingly.
-                throw new UnsupportedPathExpression("Only one variant of wildcard, annotated wildcard, field names, or index ordinals is supported!");
+                throw new UnsupportedPathExpression(
+                        "Only one variant of wildcard, annotated wildcard, field names, or ordinals is supported!");
             }
         }
     }
 
-    private static class SplatMatcher<T> extends FsmMatcher<T>
-    {
+    private static class SplatMatcher<T> extends FsmMatcher<T> {
         FsmMatcher<T> child;
 
         SplatMatcher(
-                FsmMatcher<T> child,
-                BiFunction<IonReader, T, Integer> callback) {
+                final FsmMatcher<T> child,
+                final BiFunction<IonReader, T, Integer> callback) {
             this.child = child;
             this.callback = callback;
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations)
-        {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             return child;
         }
     }
 
-    private static class FieldMatcher<T> extends FsmMatcher<T>
-    {
+    private static class FieldMatcher<T> extends FsmMatcher<T> {
         Map<String, FsmMatcher<T>> fields;
 
         FieldMatcher(
-                Map<String, FsmMatcher<T>> fields,
-                BiFunction<IonReader, T, Integer> callback) {
+                final Map<String, FsmMatcher<T>> fields,
+                final BiFunction<IonReader, T, Integer> callback) {
             this.fields = fields;
             this.callback = callback;
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations)
-        {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             return fields.get(fieldName);
         }
     }
 
     private static class CaseInsensitiveFieldMatcher<T> extends FieldMatcher<T> {
         CaseInsensitiveFieldMatcher(
-                Map<String, FsmMatcher<T>> fields,
-                BiFunction<IonReader, T, Integer> callback) {
+                final Map<String, FsmMatcher<T>> fields,
+                final BiFunction<IonReader, T, Integer> callback) {
             super(fields, callback);
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations)
-        {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             return fields.get(fieldName.toLowerCase());
         }
     }
 
-    private static class IndexMatcher<T> extends FsmMatcher<T>
-    {
+    private static class IndexMatcher<T> extends FsmMatcher<T> {
         Map<Integer, FsmMatcher<T>> indexes;
 
         IndexMatcher(
-                Map<Integer, FsmMatcher<T>> indexes,
-                BiFunction<IonReader, T, Integer> callback) {
+                final Map<Integer, FsmMatcher<T>> indexes,
+                final BiFunction<IonReader, T, Integer> callback) {
             this.indexes = indexes;
             this.callback = callback;
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             return indexes.get(position);
         }
     }
 
-    private static class TerminalMatcher<T> extends FsmMatcher<T>
-    {
-        TerminalMatcher(BiFunction<IonReader, T, Integer> callback) {
+    private static class TerminalMatcher<T> extends FsmMatcher<T> {
+        TerminalMatcher(final BiFunction<IonReader, T, Integer> callback) {
             this.callback = callback;
             this.terminal = true;
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             return null;
         }
     }
 
-    private static class AnnotationsMatcher<T> extends FsmMatcher<T>
-    {
+    private static class AnnotationsMatcher<T> extends FsmMatcher<T> {
         List<String[]> candidates;
         List<FsmMatcher<T>> matchers;
 
-        AnnotationsMatcher(List<String[]> candidates, List<FsmMatcher<T>> matchers) {
+        AnnotationsMatcher(final List<String[]> candidates, final List<FsmMatcher<T>> matchers) {
             this.candidates = candidates;
             this.matchers = matchers;
         }
 
         @Override
-        FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
             for (int i = 0; i < candidates.size(); i++) {
                 if (Arrays.equals(candidates.get(i), annotations)) {
                     return matchers.get(i);

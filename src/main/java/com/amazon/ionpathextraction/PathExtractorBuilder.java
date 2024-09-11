@@ -58,8 +58,8 @@ public final class PathExtractorBuilder<T> {
      * Instantiates a thread safe {@link PathExtractor} configured by this builder.
      * Attempts to build a "strict" PathExtractor which is much more performant, particularly
      * for extractions with many field names. Falls back to the "legacy" implementation.
-     *
-     * @see this.buildStrict() to ensure the more optimal implementation is used.
+     * <br>
+     * Use buildStrict to ensure the more optimal implementation is used.
      * @return new {@link PathExtractor} instance.
      */
     public PathExtractor<T> build() {
@@ -93,11 +93,12 @@ public final class PathExtractorBuilder<T> {
      * `(foo bar) (foo 1) (foo *)` combination of field names, index ordinals or wildcards not supported.
      * `a::() ()` combination of annotated and non-annotated root (or other wildcard) matching.
      *
-     * @throws UnsupportedPathExpression if any search path or the paths combined, are not supported.
      * @return new {@link PathExtractor} instance.
+     * @throws UnsupportedPathExpression if any search path or the paths combined, are not supported.
      */
     public PathExtractor<T> buildStrict() {
-        return FsmPathExtractor.create(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
+        return FsmPathExtractor.create(searchPaths,
+                new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
     }
 
     /**
@@ -106,7 +107,8 @@ public final class PathExtractorBuilder<T> {
      * but a wider variety of search paths are supported.
      */
     public PathExtractor<T> buildLegacy() {
-        return new PathExtractorImpl<>(searchPaths, new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
+        return new PathExtractorImpl<>(searchPaths,
+                new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
     }
     
     /**

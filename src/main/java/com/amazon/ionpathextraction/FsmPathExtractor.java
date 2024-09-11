@@ -1,14 +1,26 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at:
+ *
+ *     http://aws.amazon.com/apache2.0/
+ *
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
+ */
+
 package com.amazon.ionpathextraction;
+
+import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonType;
 import com.amazon.ionpathextraction.internal.PathExtractorConfig;
-
 import java.util.List;
 import java.util.function.BiFunction;
-
-import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
-import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 /**
  * A PathExtractor modeled as a Finite State Machine.
@@ -25,13 +37,19 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
     private final FsmMatcher<T> rootMatcher;
     private final PathExtractorConfig config;
 
-    private FsmPathExtractor(FsmMatcher<T> rootMatcher, PathExtractorConfig config) {
+    private FsmPathExtractor(
+            final FsmMatcher<T> rootMatcher,
+            final PathExtractorConfig config) {
         this.rootMatcher = rootMatcher;
         this.config = config;
     }
 
-    static <U> FsmPathExtractor<U> create(List<SearchPath<U>> searchPaths, PathExtractorConfig config) {
-        FsmMatcherBuilder<U> builder = new FsmMatcherBuilder<>(config.isMatchCaseInsensitive(), config.isMatchFieldsCaseInsensitive());
+    static <U> FsmPathExtractor<U> create(
+            final List<SearchPath<U>> searchPaths,
+            final PathExtractorConfig config) {
+        FsmMatcherBuilder<U> builder = new FsmMatcherBuilder<>(
+                config.isMatchCaseInsensitive(),
+                config.isMatchFieldsCaseInsensitive());
         for (SearchPath<U> path : searchPaths) {
             builder.accept(path);
         }
@@ -40,12 +58,12 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
     }
 
     @Override
-    public void match(IonReader reader) {
+    public void match(final IonReader reader) {
         match(reader, null);
     }
 
     @Override
-    public void match(IonReader reader, T context) {
+    public void match(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
                 "reader must be at depth zero, it was at: " + reader.getDepth());
 
@@ -55,26 +73,26 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
     }
 
     @Override
-    public void matchCurrentValue(IonReader reader) {
+    public void matchCurrentValue(final IonReader reader) {
         matchCurrentValue(reader, null);
     }
 
     @Override
-    public void matchCurrentValue(IonReader reader, T context) {
+    public void matchCurrentValue(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
                 "reader must be at depth zero, it was at: " + reader.getDepth());
         checkArgument(reader.getType() != null,
                 "reader must be positioned at a value; call IonReader.next() first.");
 
-        match(reader, rootMatcher, context, null, reader.getDepth());
+        matchRecursive(reader, rootMatcher, context, null, reader.getDepth());
     }
 
-    private int match(
-            IonReader reader,
-            FsmMatcher<T> matcher,
-            T context,
-            Integer position,
-            int initialDepth) {
+    private int matchRecursive(
+            final IonReader reader,
+            final FsmMatcher<T> matcher,
+            final T context,
+            final Integer position,
+            final int initialDepth) {
         FsmMatcher<T> child = matcher.transition(reader.getFieldName(), position, reader.getTypeAnnotations());
         if (child == null) {
             return 0;
@@ -92,7 +110,7 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
             int childPos = 0;
             int stepOut = 0;
             while (reader.next() != null && stepOut == 0) {
-                stepOut = match(reader, child, context, childPos++, initialDepth);
+                stepOut = matchRecursive(reader, child, context, childPos++, initialDepth);
             }
             reader.stepOut();
             if (stepOut > 0) {

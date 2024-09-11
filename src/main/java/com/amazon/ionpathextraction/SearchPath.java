@@ -18,7 +18,6 @@ import com.amazon.ionpathextraction.internal.Annotations;
 import com.amazon.ionpathextraction.internal.MatchContext;
 import com.amazon.ionpathextraction.pathcomponents.PathComponent;
 import com.amazon.ionpathextraction.pathcomponents.Wildcard;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -87,7 +86,6 @@ final class SearchPath<T> {
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        // todo: annotations!
         builder.append("(");
         for (PathComponent pathComponent : pathComponents) {
             builder.append(pathComponent.toString());

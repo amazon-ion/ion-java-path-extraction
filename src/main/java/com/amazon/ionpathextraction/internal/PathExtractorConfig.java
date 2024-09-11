@@ -22,7 +22,13 @@ public final class PathExtractorConfig {
     private final boolean matchCaseInsensitive;
     private final boolean matchFieldsCaseInsensitive;
 
-    public PathExtractorConfig(final boolean matchRelativePaths, final boolean matchCaseInsensitive, boolean matchFieldsCaseInsensitive) {
+    /**
+     * Instantiate a PathExtractorConfig.
+     */
+    public PathExtractorConfig(
+            final boolean matchRelativePaths,
+            final boolean matchCaseInsensitive,
+            final boolean matchFieldsCaseInsensitive) {
         this.matchRelativePaths = matchRelativePaths;
         this.matchCaseInsensitive = matchCaseInsensitive;
         this.matchFieldsCaseInsensitive = matchFieldsCaseInsensitive;

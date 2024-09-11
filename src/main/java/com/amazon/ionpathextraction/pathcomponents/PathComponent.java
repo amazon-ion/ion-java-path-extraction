@@ -60,4 +60,10 @@ public abstract class PathComponent {
      * implement their specific matching logic in this method.
      */
     protected abstract boolean innerMatches(final MatchContext context);
+
+    @Override
+    public String toString() {
+        // todo: annotations!
+        return "";
+    }
 }
