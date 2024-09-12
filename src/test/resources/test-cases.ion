@@ -238,13 +238,13 @@ search paths
 
 // Multiple search paths -----------------------------------------------------------------
 // all match
-{ searchPaths: [(0), (foo)], data: {bar: 1, foo: 2}, expected: [1, 2] }
+legacy::{ searchPaths: [(0), (foo)], data: {bar: 1, foo: 2}, expected: [1, 2] }
 
 // none match
-{ searchPaths: [(1), [foo]], data: [0], expected: [] }
+legacy::{ searchPaths: [(1), [foo]], data: [0], expected: [] }
 
 // multiple matchers match the same value
-{ searchPaths: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
+legacy::{ searchPaths: [(1), (*)], data: [1, 2, 3], expected: [1, 2, 2, 3] }
 
 { searchPaths: [(foo 1), (foo 2)], data: {foo: [0, 1, 2]}, expected: [1, 2] }
 
@@ -264,11 +264,53 @@ search paths
 { searchPath: (A::'*'), data: [A::1, 2], expected: [A::1] }
 { searchPath: ('$ion_extractor_field'::*), data: {'*': A::1, foo: 2}, expected: [A::1]}
 { searchPath: (A::B::C::*), data: [A::B::C::1, B::A::C::2], expected: [A::B::C::1] }
-{
+legacy::{
+  // annotations on ordinals or fields _could_ be supported in the FSM impl
+  // but usage appears non-existent at time of writing (Sep 2024)
   searchPath: (foo A::2 bar),
   data: {
     foo: [0, 1, A::{bar: 1}],
     foo: [0, 1, {bar: 2}]
   },
   expected: [1]
+}
+legacy::{
+  searchPath: (f::foo),
+  data: { foo: f::17, foo: F::31, Foo: f::51, Foo: F::67 },
+  expected: [f::17],
+  // default is None but explicit here as it is essential to the test case
+  caseInsensitive: None
+}
+
+// case insensitivity
+{
+  searchPath: (foo),
+  data: $datagram::[{FOO: 1, foO: 2},{foo: 3},{fOo: 4},{bar: 5}],
+  expected: [1, 2, 3, 4],
+  caseInsensitive: Both
+}
+legacy::{
+  // these resolve to the same path for the Fsm Impl
+  searchPaths: [(foo), (Foo)],
+  data: $datagram::[{FOO: 1, foO: 2},{foo: 3},{Foo: 4},{bar: 5}],
+  expected: [1, 1, 2, 2, 3, 3, 4, 4],
+  caseInsensitive: Both
+}
+{
+  searchPath: (foo),
+  data: $datagram::[{FOO: 1, foO: 2},{foo: 3},{Foo: 4},{bar: 5}],
+  expected: [1, 2, 3, 4],
+  caseInsensitive: Fields
+}
+legacy::{
+  searchPath: F::(),
+  data: $datagram::[F::17, g::31, f::51],
+  expected: [F::17, f::51],
+  caseInsensitive: Both
+}
+{
+  searchPath: F::(),
+  data: $datagram::[F::17, g::31, f::51],
+  expected: [F::17],
+  caseInsensitive: Fields
 }

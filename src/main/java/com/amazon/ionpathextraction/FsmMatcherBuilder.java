@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -92,8 +93,8 @@ class FsmMatcherBuilder<T> {
         private PathTreeNode acceptStep(final PathComponent step) {
             if (step.isAnnotated() && caseInsensitiveAll) {
                 throw new UnsupportedPathExpression(
-                        "Case Insensitive Matching of Annotations is not supported by this matcher.\n"
-                                + "Use the legacy matcher or set withMatchFieldNamesCaseInsensitive instead.");
+                        "Case Insensitive Matching of Annotations is not yet supported by this matcher.\n"
+                                + "Use the legacy matcher or the withMatchFieldNamesCaseInsensitive option instead.");
             }
 
             PathTreeNode child;
@@ -134,7 +135,7 @@ class FsmMatcherBuilder<T> {
                 this.callback = callback;
             } else {
                 // this would actually be pretty simple to do: just create a ComposedCallback of BiFunctions.
-                throw new UnsupportedPathExpression("Callback already set!");
+                throw new UnsupportedPathExpression("Cannot set multiple callbacks for same path!");
             }
         }
 
@@ -196,7 +197,7 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return child;
         }
     }
@@ -212,7 +213,7 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return fields.get(fieldName);
         }
     }
@@ -225,7 +226,7 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return fields.get(fieldName.toLowerCase());
         }
     }
@@ -241,7 +242,7 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return indexes.get(position);
         }
     }
@@ -253,7 +254,7 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return null;
         }
     }
@@ -268,9 +269,9 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        FsmMatcher<T> transition(final String fieldName, final Integer position, final String[] annotations) {
+        FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             for (int i = 0; i < candidates.size(); i++) {
-                if (Arrays.equals(candidates.get(i), annotations)) {
+                if (Arrays.equals(candidates.get(i), annotations.get())) {
                     return matchers.get(i);
                 }
             }

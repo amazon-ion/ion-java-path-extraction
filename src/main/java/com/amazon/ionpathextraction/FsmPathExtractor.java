@@ -18,6 +18,7 @@ import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonType;
+import com.amazon.ionpathextraction.exceptions.PathExtractionException;
 import com.amazon.ionpathextraction.internal.PathExtractorConfig;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -65,7 +66,7 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
     @Override
     public void match(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
-                "reader must be at depth zero, it was at: " + reader.getDepth());
+                "reader must be at depth zero, it was at: %s", reader.getDepth());
 
         while (reader.next() != null) {
             matchCurrentValue(reader, context);
@@ -80,20 +81,20 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
     @Override
     public void matchCurrentValue(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
-                "reader must be at depth zero, it was at: " + reader.getDepth());
+                "reader must be at depth zero, it was at: %s", reader.getDepth());
         checkArgument(reader.getType() != null,
                 "reader must be positioned at a value; call IonReader.next() first.");
 
-        matchRecursive(reader, rootMatcher, context, null, reader.getDepth());
+        matchRecursive(reader, rootMatcher, context, -1, reader.getDepth());
     }
 
     private int matchRecursive(
             final IonReader reader,
             final FsmMatcher<T> matcher,
             final T context,
-            final Integer position,
+            final int position,
             final int initialDepth) {
-        FsmMatcher<T> child = matcher.transition(reader.getFieldName(), position, reader.getTypeAnnotations());
+        FsmMatcher<T> child = matcher.transition(reader.getFieldName(), position, reader::getTypeAnnotations);
         if (child == null) {
             return 0;
         }
@@ -109,7 +110,7 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
             reader.stepIn();
             int childPos = 0;
             int stepOut = 0;
-            while (reader.next() != null && stepOut == 0) {
+            while (stepOut == 0 && reader.next() != null) {
                 stepOut = matchRecursive(reader, child, context, childPos++, initialDepth);
             }
             reader.stepOut();
@@ -132,21 +133,22 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
         int newReaderDepth = reader.getDepth();
 
         checkState(previousReaderDepth == newReaderDepth,
-                "Reader must be at same depth when returning from callbacks. initial: "
-                        + previousReaderDepth
-                        + ", new: "
-                        + newReaderDepth);
+                    "Reader must be at same depth when returning from callbacks. initial: %s, new: %s",
+                    previousReaderDepth,
+                    newReaderDepth);
 
         // we don't allow users to step out the initial reader depth
         int readerRelativeDepth = reader.getDepth() - initialReaderDepth;
 
         checkState(stepOutTimes <= readerRelativeDepth,
-                "Callback return cannot be greater than the reader current relative depth."
-                        + " return: "
-                        + stepOutTimes
-                        + ", relative reader depth: "
-                        + readerRelativeDepth);
+                    STEP_OUT_TOO_FAR_MSG,
+                    stepOutTimes,
+                    readerRelativeDepth);
 
         return stepOutTimes;
     }
+
+    private static final String STEP_OUT_TOO_FAR_MSG =
+        "Callback return cannot be greater than the reader current relative depth. "
+        + "return: %s, relative reader depth: %s";
 }

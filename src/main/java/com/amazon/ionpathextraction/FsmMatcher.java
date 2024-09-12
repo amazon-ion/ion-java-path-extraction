@@ -15,6 +15,7 @@ package com.amazon.ionpathextraction;
 
 import com.amazon.ion.IonReader;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * Base class for match states in the Finite State Machine matching implementation.
@@ -33,6 +34,10 @@ abstract class FsmMatcher<T> {
     /**
      * Return the child matcher for the given reader context.
      * Return null if there is no match.
+     * <br>
+     * @param position will be -1 for top-level-values, otherwise will be the position ordinal
+     *         of the value in the container, both for sequences and structs.
+     * @param fieldName will be non-null only for struct values.
      */
-    abstract FsmMatcher<T> transition(String fieldName, Integer position, String[] annotations);
+    abstract FsmMatcher<T> transition(String fieldName, int position, Supplier<String[]> annotations);
 }
