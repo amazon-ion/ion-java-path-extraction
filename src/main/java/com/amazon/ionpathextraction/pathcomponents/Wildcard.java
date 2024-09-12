@@ -43,9 +43,4 @@ public final class Wildcard extends PathComponent {
     public boolean innerMatches(final MatchContext context) {
         return true;
     }
-
-    @Override
-    public String toString() {
-        return TEXT;
-    }
 }

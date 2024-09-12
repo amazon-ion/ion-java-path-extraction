@@ -61,9 +61,4 @@ public final class Text extends PathComponent {
             ? fieldName.equalsIgnoreCase(reader.getFieldName())
             : fieldName.equals(reader.getFieldName());
     }
-
-    @Override
-    public String toString() {
-        return fieldName;
-    }
 }

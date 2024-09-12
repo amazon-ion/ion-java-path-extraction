@@ -41,7 +41,7 @@ public abstract class PathComponent {
         return annotations;
     }
 
-    public boolean isAnnotated() {
+    public boolean hasAnnotations() {
         return annotations.hasAnnotations();
     }
 
@@ -60,10 +60,4 @@ public abstract class PathComponent {
      * implement their specific matching logic in this method.
      */
     protected abstract boolean innerMatches(final MatchContext context);
-
-    @Override
-    public String toString() {
-        // todo: annotations!
-        return "";
-    }
 }

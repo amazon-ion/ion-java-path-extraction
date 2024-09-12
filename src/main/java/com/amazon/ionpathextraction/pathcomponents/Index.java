@@ -49,9 +49,4 @@ public final class Index extends PathComponent {
     public boolean innerMatches(final MatchContext context) {
         return ordinal == context.getReaderContainerIndex();
     }
-
-    @Override
-    public String toString() {
-        return String.valueOf(ordinal);
-    }
 }

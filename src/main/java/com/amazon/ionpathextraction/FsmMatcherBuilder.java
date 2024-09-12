@@ -91,7 +91,7 @@ class FsmMatcherBuilder<T> {
          * @throws UnsupportedPathExpression if the step contains path components that are not supported
          */
         private PathTreeNode acceptStep(final PathComponent step) {
-            if (step.isAnnotated() && caseInsensitiveAll) {
+            if (step.hasAnnotations() && caseInsensitiveAll) {
                 throw new UnsupportedPathExpression(
                         "Case Insensitive Matching of Annotations is not yet supported by this matcher.\n"
                                 + "Use the legacy matcher or the withMatchFieldNamesCaseInsensitive option instead.");
@@ -99,7 +99,7 @@ class FsmMatcherBuilder<T> {
 
             PathTreeNode child;
             if (step instanceof Wildcard) {
-                if (step.isAnnotated()) {
+                if (step.hasAnnotations()) {
                     child = annotatedSplats.computeIfAbsent(step.getAnnotations(), a -> new PathTreeNode());
                 } else {
                     if (wildcard == null) {
@@ -108,7 +108,7 @@ class FsmMatcherBuilder<T> {
                     child = wildcard;
                 }
             } else {
-                if (step.isAnnotated()) {
+                if (step.hasAnnotations()) {
                     // this is not too bad to do, but it takes care to do without impacting the non-annotated case
                     // which is the majority of usage. one would also want to mind the principle to avoid multiple
                     // distinct match paths for a given reader context and only allow either annotated or not
