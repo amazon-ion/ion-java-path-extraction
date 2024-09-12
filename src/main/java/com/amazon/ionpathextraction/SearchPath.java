@@ -82,17 +82,4 @@ final class SearchPath<T> {
 
         return false;
     }
-
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append("(");
-        for (PathComponent pathComponent : pathComponents) {
-            builder.append(pathComponent.toString());
-            builder.append(" ");
-        }
-        builder.append(")");
-
-        return builder.toString();
-    }
 }
