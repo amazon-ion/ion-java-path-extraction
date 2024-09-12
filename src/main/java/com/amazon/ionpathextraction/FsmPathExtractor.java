@@ -18,7 +18,6 @@ import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonType;
-import com.amazon.ionpathextraction.exceptions.PathExtractionException;
 import com.amazon.ionpathextraction.internal.PathExtractorConfig;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -109,14 +108,14 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
         if (IonType.isContainer(reader.getType()) && !child.terminal) {
             reader.stepIn();
             int childPos = 0;
-            int stepOut = 0;
-            while (stepOut == 0 && reader.next() != null) {
-                stepOut = matchRecursive(reader, child, context, childPos++, initialDepth);
+            while (reader.next() != null) {
+                int stepOut = matchRecursive(reader, child, context, childPos++, initialDepth);
+                if (stepOut > 0) {
+                    reader.stepOut();
+                    return stepOut - 1;
+                }
             }
             reader.stepOut();
-            if (stepOut > 0) {
-                return stepOut - 1;
-            }
         }
 
         return 0;
