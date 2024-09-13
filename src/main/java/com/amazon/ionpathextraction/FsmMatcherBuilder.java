@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * For example: for a case-insensitive field lookup, lower case the field names once, at build time.
  * <br>
  * The second key principle is that there should be at-most-one Matcher states for a given reader context.
- * So any combination of different paths which could both be active for the same reader state are disallowed.
+ * So any combination of different paths which could both be active for the same reader context are disallowed.
  * For example: allowing a mix of field names and ordinal positions for a given sub-path.
  * <br>
  * Beyond that, there are some usage patterns which could be included, such as annotations filtering on
