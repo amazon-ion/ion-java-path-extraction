@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * One key principle in the implementation is to close over as much branching as possible at build time.
  * For example: for a case-insensitive field lookup, lower case the field names once, at build time.
  * <br>
- * The second key principle is that there should be at-most-one Matcher states for a given reader context.
+ * The second key principle is that there should be at-most-one Matcher state for a given reader context.
  * So any combination of different paths which could both be active for the same reader context are disallowed.
  * For example: allowing a mix of field names and ordinal positions for a given sub-path.
  * <br>
