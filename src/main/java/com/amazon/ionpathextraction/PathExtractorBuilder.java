@@ -57,7 +57,7 @@ public final class PathExtractorBuilder<T> {
     /**
      * Instantiates a thread safe {@link PathExtractor} configured by this builder.
      * Attempts to build a "strict" PathExtractor which is much more performant, particularly
-     * for extractions with many field names. Falls back to the "legacy" implementation.
+     * for extractions with many field names. Falls back to the "legacy" implementation if the paths registered are incompatible with the "strict" implementation.
      * <br>
      * Use buildStrict to ensure the more optimal implementation is used.
      * @return new {@link PathExtractor} instance.
