@@ -56,8 +56,9 @@ public final class PathExtractorBuilder<T> {
 
     /**
      * Instantiates a thread safe {@link PathExtractor} configured by this builder.
-     * Attempts to build a "strict" PathExtractor which is much more performant, particularly
-     * for extractions with many field names. Falls back to the "legacy" implementation if the paths registered are incompatible with the "strict" implementation.
+     * Attempts to build a "strict" PathExtractor which is much more performant, particularly for extractions with many
+     * field names. Falls back to the "legacy" implementation if the paths registered are incompatible with the "strict"
+     * implementation.
      * <br>
      * Use buildStrict to ensure the more optimal implementation is used.
      * @return new {@link PathExtractor} instance.
@@ -73,8 +74,8 @@ public final class PathExtractorBuilder<T> {
     /**
      * Instantiate a "stricter" and more optimized PathExtractor.
      * <br>
-     * Supports search paths where there is only one "variant" of step
-     * type from each parent step, and only one callback per state.
+     * Supports search paths where there is only one "variant" of step type from each parent step, and only one callback
+     * per state.
      * Annotations matching is only supported on the root or wildcards.
      * Case insensitivity is supported on field names, not annotations.
      * <br>
