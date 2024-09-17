@@ -71,6 +71,10 @@ number of fields extracted grows. By default `PathExtractorBuilder.build()` will
 will fall back to the legacy extractor. You may be explicit that you want a specific implementation by calling
 `PathExtractorBuilder.buildStrict()` or `PathExtractorBuilder.buildLegacy()`.
 
+The strict implementation supports basic paths, with field names, index ordinals, and annotations on top-level-values or
+wildcards. It does not support mixing field names and index ordinals, multiple callbacks on the same path or annotations
+on non-wildcard values. Case-insensitive annotations matching is not supported.
+
 ### Notification
 Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective
 callback passing the reader positioned at the current value. See `PathExtractorBuilder#withSearchPath` methods for more
