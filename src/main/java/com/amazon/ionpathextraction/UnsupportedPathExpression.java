@@ -13,6 +13,10 @@
 
 package com.amazon.ionpathextraction;
 
+/**
+ * Thrown when trying to build a "strict" PathExtractor if a SearchPath or set of paths is not supported.
+ * A user should rewrite their extraction to match the strictness invariant or use the "legacy" PathExtractor.
+ */
 public class UnsupportedPathExpression extends RuntimeException {
     public UnsupportedPathExpression(final String msg) {
         super(msg);

@@ -28,7 +28,8 @@ public class Preconditions {
 
     /**
      * Validates argument, fails if condition is not met.
-     * Prefer variable arity overload instead of concatenating Strings at call-site!!!
+     * Prefer {@link #checkArgument(boolean isValid, String messageFormat, Object[] args) } over concatenating
+     * Strings at call-site.
      *
      * @param isValid if condition is met.
      * @param message error message.
@@ -42,7 +43,7 @@ public class Preconditions {
 
     /**
      * Validates argument, fails if condition is not met.
-     * Prefer variable arity overload instead of concatenating Strings at call-site!!!
+     * This overload only builds the error message if isValid is false.
      *
      * @param isValid if condition is met.
      * @param messageFormat error message _format_.
@@ -57,6 +58,8 @@ public class Preconditions {
 
     /**
      * Validates a state, fails if condition is not met.
+     * Prefer {@link #checkState(boolean isValid, String messageFormat, Object[] args) } over concatenating
+     * Strings at call-site.
      *
      * @param isValid if condition is met.
      * @param message error message.
@@ -70,6 +73,7 @@ public class Preconditions {
 
     /**
      * Validates a state, fails if condition is not met.
+     * This overload only builds the error message if isValid is false.
      *
      * @param isValid if condition is met.
      * @param messageFormat error message _format_.
