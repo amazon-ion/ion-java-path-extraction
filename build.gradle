@@ -83,10 +83,10 @@ jmh {
     failOnError = true
 
     // warmup
-    warmupIterations = 5
+    warmupIterations = 2
 
     // iterations
-    iterations = 10
+    iterations = 5
 }
 
 checkstyle {

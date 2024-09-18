@@ -63,7 +63,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
     @Override
     public void match(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
-            "reader must be at depth zero, it was at:" + reader.getDepth());
+            "reader must be at depth zero, it was at: " + reader.getDepth());
 
         // short circuit when there are zero SearchPaths
         if (searchPaths.isEmpty()) {
@@ -83,7 +83,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
     @Override
     public void matchCurrentValue(final IonReader reader, final T context) {
         checkArgument(reader.getDepth() == 0 || config.isMatchRelativePaths(),
-            "reader must be at depth zero, it was at:" + reader.getDepth());
+            "reader must be at depth zero, it was at: " + reader.getDepth());
         checkArgument(reader.getType() != null,
             "reader must be positioned at a value; call IonReader.next() first.");
 
@@ -189,7 +189,7 @@ final class PathExtractorImpl<T> implements PathExtractor<T> {
     private static class Tracker<T> {
 
         private final Deque<List<SearchPath<T>>> stack;
-        private int initialReaderDepth;
+        private final int initialReaderDepth;
 
         Tracker(final int size, final List<SearchPath<T>> searchPaths, final int initialReaderDepth) {
             stack = new ArrayDeque<>(size);

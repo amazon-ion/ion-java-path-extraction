@@ -35,7 +35,8 @@ data on reader: {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedVa
 (*)           - matches ["foo1", "foo2"], "myBarValue" and A::"annotatedValue"
 ()            - matches {foo: ["foo1", "foo2"] , bar: "myBarValue", bar: A::"annotatedValue"}
 (bar)         - matches "myBarValue" and A::"annotatedValue"
-(A::bar)      - matches A::"annotatedValue"
+(A::*)        - matches A::"annotatedValue"
+(A::bar)      - matches A::"annotatedValue" (is not supported in "strict" mode, see #Optimization below)
 ```
 
 The `()` matcher matches all values in the stream but you can also use annotations with it, example:
@@ -62,6 +63,17 @@ PathExtractorBuilder.standard()
 ```
 
 see PathExtractorBuilder [javadoc](https://static.javadoc.io/com.amazon.ion/ion-java-path-extraction/1.0.1/com/amazon/ionpathextraction/PathExtractorBuilder.html) for more information on configuration options and search path registration.
+
+### Optimization
+
+There are two implementations: "strict" and "legacy". The strict implementation is more performant, particularly as the
+number of fields extracted grows. By default `PathExtractorBuilder.build()` will try to build you a strict extractor and
+will fall back to the legacy extractor. You may be explicit that you want a specific implementation by calling
+`PathExtractorBuilder.buildStrict()` or `PathExtractorBuilder.buildLegacy()`.
+
+The strict implementation supports basic paths, with field names, index ordinals, and annotations on top-level-values or
+wildcards. It does not support mixing field names and index ordinals, multiple callbacks on the same path or annotations
+on non-wildcard values. Case-insensitive annotations matching is not supported.
 
 ### Notification
 Each time the `PathExtractor` encounters a value that matches a registered search path it will invoke the respective
@@ -165,6 +177,7 @@ binary file is ~81M and the text file ~95M. There are four benchmarks types:
 1. `partial`: materializes a single struct fields as `IonValue` using a path extractor.a
 1. `partialNoDom`: access the java representation directly of a single struct field without materializing an `IonValue`.
 
+All the path extractor benchmarks are run in "strict" mode.
 There is a binary and a text version for all four benchmark types. See the [PathExtractorBenchmark](https://github.com/amzn/ion-java-path-extraction/blob/master/src/jmh/java/com/amazon/ionpathextraction/benchmarks/PathExtractorBenchmark.java) class for
 more details.
 
@@ -173,14 +186,14 @@ Results below, higher is better.
 
 ```
 Benchmark                                   Mode  Cnt   Score   Error  Units
-PathExtractorBenchmark.domBinary           thrpt   10   1.128 ± 0.050  ops/s
-PathExtractorBenchmark.domText             thrpt   10   0.601 ± 0.019  ops/s
-PathExtractorBenchmark.fullBinary          thrpt   10   1.227 ± 0.014  ops/s
-PathExtractorBenchmark.fullText            thrpt   10   0.665 ± 0.010  ops/s
-PathExtractorBenchmark.partialBinary       thrpt   10  14.912 ± 0.271  ops/s
-PathExtractorBenchmark.partialBinaryNoDom  thrpt   10  15.650 ± 0.297  ops/s
-PathExtractorBenchmark.partialText         thrpt   10   1.343 ± 0.029  ops/s
-PathExtractorBenchmark.partialTextNoDom    thrpt   10   1.307 ± 0.015  ops/s
+PathExtractorBenchmark.domBinary           thrpt    5   5.060 ±  0.075  ops/s
+PathExtractorBenchmark.domText             thrpt    5   1.172 ±  0.040  ops/s
+PathExtractorBenchmark.fullBinary          thrpt    5   6.011 ±  0.107  ops/s
+PathExtractorBenchmark.fullText            thrpt    5   1.214 ±  0.025  ops/s
+PathExtractorBenchmark.partialBinary       thrpt    5  57.329 ± 13.585  ops/s
+PathExtractorBenchmark.partialBinaryNoDom  thrpt    5  56.598 ±  2.424  ops/s
+PathExtractorBenchmark.partialText         thrpt    5   2.430 ±  0.073  ops/s
+PathExtractorBenchmark.partialTextNoDom    thrpt    5   2.416 ±  0.175  ops/s
 ```
 
 Using the path extractor has equivalent performance for both text and binary when fully materializing the document and

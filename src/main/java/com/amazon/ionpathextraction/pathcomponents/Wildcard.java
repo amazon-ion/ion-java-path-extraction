@@ -32,7 +32,11 @@ public final class Wildcard extends PathComponent {
     public static final String TEXT = "*";
 
     public Wildcard(final String[] annotations) {
-        super(new Annotations(annotations));
+        this(new Annotations(annotations));
+    }
+
+    public Wildcard(final Annotations annotations) {
+        super(annotations);
     }
 
     @Override

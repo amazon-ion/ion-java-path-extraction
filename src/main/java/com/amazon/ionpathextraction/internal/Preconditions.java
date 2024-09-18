@@ -28,12 +28,44 @@ public class Preconditions {
 
     /**
      * Validates argument, fails if condition is not met.
+     * Prefer {@link #checkArgument(boolean isValid, String messageFormat, Object[] args) } over concatenating
+     * Strings at call-site.
      *
      * @param isValid if condition is met.
      * @param message error message.
      * @throws PathExtractionException if not valid.
      */
-    public static void checkArgument(final Boolean isValid, final String message) {
+    public static void checkArgument(final boolean isValid, final String message) {
+        if (!isValid) {
+            throw new PathExtractionException(message);
+        }
+    }
+
+    /**
+     * Validates argument, fails if condition is not met.
+     * This overload only builds the error message if isValid is false.
+     *
+     * @param isValid if condition is met.
+     * @param messageFormat error message _format_.
+     * @param args arguments to String.format()
+     * @throws PathExtractionException if not valid.
+     */
+    public static void checkArgument(final boolean isValid, final String messageFormat, final Object... args) {
+        if (!isValid) {
+            throw new PathExtractionException(String.format(messageFormat, args));
+        }
+    }
+
+    /**
+     * Validates a state, fails if condition is not met.
+     * Prefer {@link #checkState(boolean isValid, String messageFormat, Object[] args) } over concatenating
+     * Strings at call-site.
+     *
+     * @param isValid if condition is met.
+     * @param message error message.
+     * @throws PathExtractionException if not valid.
+     */
+    public static void checkState(final boolean isValid, final String message) {
         if (!isValid) {
             throw new PathExtractionException(message);
         }
@@ -41,14 +73,16 @@ public class Preconditions {
 
     /**
      * Validates a state, fails if condition is not met.
+     * This overload only builds the error message if isValid is false.
      *
      * @param isValid if condition is met.
-     * @param message error message.
+     * @param messageFormat error message _format_.
+     * @param args arguments to String.format()
      * @throws PathExtractionException if not valid.
      */
-    public static void checkState(final Boolean isValid, final String message) {
+    public static void checkState(final boolean isValid, final String messageFormat, final Object... args) {
         if (!isValid) {
-            throw new PathExtractionException(message);
+            throw new PathExtractionException(String.format(messageFormat, args));
         }
     }
 }

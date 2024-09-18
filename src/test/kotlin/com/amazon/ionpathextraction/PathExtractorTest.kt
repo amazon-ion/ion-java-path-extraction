@@ -31,7 +31,7 @@ import java.io.File
 import java.util.stream.Stream
 import kotlin.test.assertTrue
 
-class PathExtractorTest {
+abstract class PathExtractorTest {
     companion object {
         private val ION = IonSystemBuilder.standard().build()
 
@@ -39,11 +39,15 @@ class PathExtractorTest {
                             val data: String,
                             val expected: IonList,
                             val stepOutNumber: Int,
-                            val hasMultipleTopLevelValues: Boolean) {
+                            val hasMultipleTopLevelValues: Boolean,
+                            val legacyOnly: Boolean = false,
+                            val caseInsensitive: String = "None") {
             override fun toString(): String = "SearchPaths=$searchPaths, " +
                     "Data=$data, " +
                     "Expected=$expected, " +
-                    "StepOutN=$stepOutNumber"
+                    "StepOutN=$stepOutNumber" +
+                    "Legacy=$legacyOnly" +
+                    "CaseInsensitive=$caseInsensitive"
         }
 
         private fun IonValue.toText(): String {
@@ -79,7 +83,9 @@ class PathExtractorTest {
                                     struct["data"].toText(),
                                     struct["expected"] as IonList,
                                     struct["stepOutN"]?.let { (it as IonInt).intValue() } ?: 0,
-                                    struct["data"].hasTypeAnnotation("${'$'}datagram")
+                                    struct["data"].hasTypeAnnotation("${'$'}datagram"),
+                                    struct.hasTypeAnnotation("legacy"),
+                                    struct.get("caseInsensitive")?.toText() ?: "None"
                             )
                         }.stream()
 
@@ -100,6 +106,8 @@ class PathExtractorTest {
         }
     }
 
+    abstract fun <T> PathExtractorBuilder<T>.buildExtractor(): PathExtractor<T>
+
     private val emptyCallback: (IonReader) -> Int = { 0 }
 
     private fun collectToIonList(stepOutN: Int): (IonReader, IonList) -> Int = { reader, out ->
@@ -109,12 +117,18 @@ class PathExtractorTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    fun testSearchPaths(testCase: TestCase) {
+    open fun testSearchPaths(testCase: TestCase) {
 
         val builder = PathExtractorBuilder.standard<IonList>()
 
         testCase.searchPaths.forEach { builder.withSearchPath(it, collectToIonList(testCase.stepOutNumber)) }
-        val extractor = builder.build()
+        when (testCase.caseInsensitive) {
+            "Both" -> builder.withMatchCaseInsensitive(true)
+            "Fields" -> builder.withMatchFieldNamesCaseInsensitive(true)
+            "None" -> Unit
+            else -> throw IllegalArgumentException("Unexpected value for caseInsensitive: ${testCase.caseInsensitive}")
+        }
+        val extractor = builder.buildExtractor()
 
         val out = ION.newEmptyList()
         extractor.match(ION.newReader(testCase.data), out)
@@ -124,7 +138,7 @@ class PathExtractorTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    fun testSearchPathsMatchCurrentValue(testCase: TestCase) {
+    open fun testSearchPathsMatchCurrentValue(testCase: TestCase) {
         if (testCase.hasMultipleTopLevelValues) {
             // For simplicity, skip tests with multiple top-level values. This will be tested via other test methods.
             return
@@ -132,7 +146,7 @@ class PathExtractorTest {
         val builder = PathExtractorBuilder.standard<IonList>()
 
         testCase.searchPaths.forEach { builder.withSearchPath(it, collectToIonList(testCase.stepOutNumber)) }
-        val extractor = builder.build()
+        val extractor = builder.buildExtractor()
 
         val out = ION.newEmptyList()
         val reader = ION.newReader(testCase.data)
@@ -159,7 +173,7 @@ class PathExtractorTest {
                     timesCallback2Called++
                     0
                 }
-                .build()
+                .buildExtractor()
 
         api.match(extractor, ION.newReader("{ bar: 1, bar: 2, foo: 3 }"))
 
@@ -173,11 +187,11 @@ class PathExtractorTest {
     fun matchCurrentValueOnlyMatchesCurrentValue() {
         val extractor1 = PathExtractorBuilder.standard<IonList>()
                 .withSearchPath("(foo)", collectToIonList(0))
-                .build()
+                .buildExtractor()
         val extractor2 = PathExtractorBuilder.standard<IonList>()
                 .withSearchPath("(*)", collectToIonList(1))
                 .withMatchRelativePaths(true)
-                .build()
+                .buildExtractor()
 
         val reader = ION.newReader("{foo: 123, foo: [456]} {bar: [42, 43, 44]} end")
         val out = ION.newEmptyList()
@@ -201,7 +215,7 @@ class PathExtractorTest {
     fun matchCurrentValueWhenNotPositionedOnValueFails() {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withSearchPath("(foo)") { _ -> 0 }
-                .build()
+                .buildExtractor()
 
         val reader = ION.newReader("[{foo: 1}]")
         val exception = assertThrows<PathExtractionException> { extractor.matchCurrentValue(reader) }
@@ -213,14 +227,14 @@ class PathExtractorTest {
     fun readerAtInvalidDepth(api: API) {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withSearchPath("(foo)") { _ -> 0 }
-                .build()
+                .buildExtractor()
 
         val reader = ION.newReader("[{foo: 1}]")
         assertTrue(reader.next() != null)
         reader.stepIn()
 
         val exception = assertThrows<PathExtractionException> { api.match(extractor, reader) }
-        assertEquals("reader must be at depth zero, it was at:1", exception.message)
+        assertEquals("reader must be at depth zero, it was at: 1", exception.message)
     }
 
     @ParameterizedTest
@@ -229,7 +243,7 @@ class PathExtractorTest {
         val extractor = PathExtractorBuilder.standard<IonList>()
                 .withMatchRelativePaths(true)
                 .withSearchPath("(foo)", collectToIonList(0))
-                .build()
+                .buildExtractor()
 
         val reader = ION.newReader("[{foo: 1}]")
         assertTrue(reader.next() != null)
@@ -243,28 +257,10 @@ class PathExtractorTest {
 
     @ParameterizedTest
     @EnumSource(API::class)
-    fun caseInsensitive(api: API) {
-        val extractor = PathExtractorBuilder.standard<IonList>()
-                .withMatchCaseInsensitive(true)
-                .withSearchPath("(foo)", collectToIonList(0))
-                .build()
-
-        val out = ION.newEmptyList()
-        api.match(extractor, ION.newReader("{FOO: 1, foO: 2}{foo: 3}{fOo: 4}{bar: 5}"), out)
-
-        if (api == API.MATCH_CURRENT_VALUE) {
-            assertEquals(ION.singleValue("[1,2]"), out)
-        } else {
-            assertEquals(ION.singleValue("[1,2,3,4]"), out)
-        }
-    }
-
-    @ParameterizedTest
-    @EnumSource(API::class)
     fun stepOutMoreThanPermitted(api: API) {
         val extractor = PathExtractorBuilder.standard<Any>()
                 .withSearchPath("(foo)") { _ -> 200 }
-                .build()
+                .buildExtractor()
 
         val exception = assertThrows<PathExtractionException> {
             api.match(extractor, ION.newReader("{foo: 1}"))
@@ -281,7 +277,7 @@ class PathExtractorTest {
                 .withMatchRelativePaths(true)
                 // even though you could step out twice in reader you can't given the initial reader depth
                 .withSearchPath("(bar)") { _ -> 2 }
-                .build()
+                .buildExtractor()
 
         val newReader = ION.newReader("{foo: {bar: 1}}")
         newReader.next()
@@ -314,7 +310,7 @@ class PathExtractorTest {
                     0
                 }
             }
-        }.build()
+        }.buildExtractor()
 
         api.match(extractor, ION.newReader("{foo: {bar: 1}}"))
 
@@ -390,7 +386,7 @@ class PathExtractorTest {
             val actualData = ION.newValue(ionReader1)
             assertEquals(value["col2"], actualData)
             0
-        }.withSearchPath("(col1)") { _ -> 0 }.build()
+        }.withSearchPath("(col1)") { _ -> 0 }.buildExtractor()
         extractor.match(ionReader)
     }
 }

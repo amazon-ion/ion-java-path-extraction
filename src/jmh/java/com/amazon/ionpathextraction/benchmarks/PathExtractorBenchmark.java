@@ -15,6 +15,7 @@ package com.amazon.ionpathextraction.benchmarks;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonSystem;
+import com.amazon.ion.IonValue;
 import com.amazon.ion.IonWriter;
 import com.amazon.ion.system.IonBinaryWriterBuilder;
 import com.amazon.ion.system.IonReaderBuilder;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -171,7 +173,14 @@ public class PathExtractorBenchmark {
      */
     @Benchmark
     public Object domBinary() {
-        return DOM_FACTORY.getLoader().load(bytesBinary);
+        IonReader reader = newReader(new ByteArrayInputStream(bytesBinary));
+        // iterating over Top-Level-Values is more apples:apples to path extractor
+        // vs loading all as a datagram
+        Iterator<IonValue> iter = DOM_FACTORY.iterate(reader);
+        while (iter.hasNext()) {
+            iter.next();
+        }
+        return reader;
     }
 
     /**
@@ -179,7 +188,14 @@ public class PathExtractorBenchmark {
      */
     @Benchmark
     public Object domText() {
-        return DOM_FACTORY.getLoader().load(bytesText);
+        IonReader reader = newReader(new ByteArrayInputStream(bytesText));
+        // iterating over Top-Level-Values is more apples:apples to path extractor
+        // vs loading all as a datagram
+        Iterator<IonValue> iter = DOM_FACTORY.iterate(reader);
+        while (iter.hasNext()) {
+            iter.next();
+        }
+        return reader;
     }
 
     /**

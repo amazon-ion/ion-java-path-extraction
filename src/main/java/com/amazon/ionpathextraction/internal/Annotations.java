@@ -13,6 +13,7 @@
 
 package com.amazon.ionpathextraction.internal;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
@@ -24,7 +25,9 @@ import java.util.stream.IntStream;
  * Internal only. Not intended for application use.
  * </p>
  */
-public class Annotations {
+public final class Annotations {
+
+    public static final Annotations EMPTY = new Annotations(new String[] {});
 
     final String[] rawAnnotations;
 
@@ -33,6 +36,14 @@ public class Annotations {
      */
     public Annotations(final String[] rawAnnotations) {
         this.rawAnnotations = rawAnnotations;
+    }
+
+    public String[] getAnnotations() {
+        return rawAnnotations;
+    }
+
+    public boolean hasAnnotations() {
+        return rawAnnotations.length > 0;
     }
 
     /**
@@ -50,5 +61,21 @@ public class Annotations {
 
         return IntStream.range(0, left.length)
             .allMatch(i -> ignoreCase ? left[i].equalsIgnoreCase(right[i]) : left[i].equals(right[i]));
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Annotations)) {
+            return false;
+        }
+        return Arrays.equals(rawAnnotations, ((Annotations) o).rawAnnotations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(rawAnnotations);
     }
 }
