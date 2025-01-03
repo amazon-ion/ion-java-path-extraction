@@ -14,6 +14,7 @@
 package com.amazon.ionpathextraction;
 
 import com.amazon.ion.IonReader;
+import com.amazon.ion.IonType;
 import com.amazon.ionpathextraction.internal.Annotations;
 import com.amazon.ionpathextraction.pathcomponents.Index;
 import com.amazon.ionpathextraction.pathcomponents.PathComponent;
@@ -213,6 +214,11 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
+        boolean transitionsFrom(final IonType ionType) {
+            return ionType == IonType.STRUCT;
+        }
+
+        @Override
         FsmMatcher<T> transition(final String fieldName, final int position, final Supplier<String[]> annotations) {
             return fields.get(fieldName);
         }
@@ -250,7 +256,11 @@ class FsmMatcherBuilder<T> {
     private static class TerminalMatcher<T> extends FsmMatcher<T> {
         TerminalMatcher(final BiFunction<IonReader, T, Integer> callback) {
             this.callback = callback;
-            this.terminal = true;
+        }
+
+        @Override
+        boolean transitionsFrom(final IonType ionType) {
+            return false;
         }
 
         @Override

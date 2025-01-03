@@ -105,7 +105,7 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
             }
         }
 
-        if (IonType.isContainer(reader.getType()) && !child.terminal) {
+        if (child.transitionsFrom(reader.getType())) {
             reader.stepIn();
             int childPos = 0;
             while (reader.next() != null) {

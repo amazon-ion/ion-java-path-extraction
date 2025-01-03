@@ -14,6 +14,7 @@
 package com.amazon.ionpathextraction;
 
 import com.amazon.ion.IonReader;
+import com.amazon.ion.IonType;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -27,9 +28,11 @@ abstract class FsmMatcher<T> {
     BiFunction<IonReader, T, Integer> callback;
 
     /**
-     * Indicates there are no possible child transitions.
+     * Indicates if there _may_ be transitions to child matchers from the given IonType.
      */
-    boolean terminal = false;
+    boolean transitionsFrom(final IonType ionType) {
+        return IonType.isContainer(ionType);
+    }
 
     /**
      * Return the child matcher for the given reader context.

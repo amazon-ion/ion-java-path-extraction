@@ -314,3 +314,9 @@ legacy::{
   expected: [F::17],
   caseInsensitive: Fields
 }
+{
+  searchPath: (foo),
+  data: $datagram::[[17]],
+  expected: [],
+  caseInsensitive: Fields
+}
