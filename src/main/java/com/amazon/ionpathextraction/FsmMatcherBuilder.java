@@ -214,8 +214,14 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        boolean transitionsFrom(final IonType ionType) {
-            return ionType == IonType.STRUCT;
+        Transitionable transitionsFrom(final IonType ionType) {
+            if (ionType == IonType.STRUCT) {
+                return Transitionable.POSSIBLE;
+            }
+            if (ionType == IonType.NULL) {
+                return Transitionable.TERMINAL;
+            }
+            return Transitionable.MISTYPED;
         }
 
         @Override
@@ -259,8 +265,8 @@ class FsmMatcherBuilder<T> {
         }
 
         @Override
-        boolean transitionsFrom(final IonType ionType) {
-            return false;
+        Transitionable transitionsFrom(final IonType ionType) {
+            return Transitionable.TERMINAL;
         }
 
         @Override

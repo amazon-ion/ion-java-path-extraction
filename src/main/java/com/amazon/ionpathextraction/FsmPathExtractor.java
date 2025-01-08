@@ -18,6 +18,7 @@ import static com.amazon.ionpathextraction.internal.Preconditions.checkState;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.IonType;
+import com.amazon.ionpathextraction.exceptions.PathExtractionException;
 import com.amazon.ionpathextraction.internal.PathExtractorConfig;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -35,17 +36,21 @@ import java.util.function.BiFunction;
  */
 class FsmPathExtractor<T> implements PathExtractor<T> {
     private final FsmMatcher<T> rootMatcher;
+    private final boolean strictTyping;
     private final PathExtractorConfig config;
 
     private FsmPathExtractor(
             final FsmMatcher<T> rootMatcher,
+            final boolean strictTyping,
             final PathExtractorConfig config) {
         this.rootMatcher = rootMatcher;
+        this.strictTyping = strictTyping;
         this.config = config;
     }
 
     static <U> FsmPathExtractor<U> create(
             final List<SearchPath<U>> searchPaths,
+            final boolean strictTyping,
             final PathExtractorConfig config) {
         FsmMatcherBuilder<U> builder = new FsmMatcherBuilder<>(
                 config.isMatchCaseInsensitive(),
@@ -54,7 +59,7 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
             builder.accept(path);
         }
 
-        return new FsmPathExtractor<>(builder.build(), config);
+        return new FsmPathExtractor<>(builder.build(), strictTyping, config);
     }
 
     @Override
@@ -105,7 +110,8 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
             }
         }
 
-        if (child.transitionsFrom(reader.getType())) {
+        FsmMatcher.Transitionable transitionable = child.transitionsFrom(reader.getType());
+        if (transitionable.possible) {
             reader.stepIn();
             int childPos = 0;
             while (reader.next() != null) {
@@ -116,6 +122,12 @@ class FsmPathExtractor<T> implements PathExtractor<T> {
                 }
             }
             reader.stepOut();
+            return 0;
+        }
+
+        if (transitionable.invalid && strictTyping) {
+            throw new PathExtractionException(
+                    String.format("IonType %s is not valid for transitions from %s", reader.getType(), child));
         }
 
         return 0;

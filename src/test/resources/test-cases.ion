@@ -320,3 +320,9 @@ legacy::{
   expected: [],
   caseInsensitive: Fields
 }
+{
+  searchPath: (foo),
+  data: $datagram::[null.struct],
+  expected: [],
+  caseInsensitive: Fields
+}

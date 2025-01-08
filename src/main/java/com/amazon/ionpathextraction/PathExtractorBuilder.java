@@ -99,7 +99,22 @@ public final class PathExtractorBuilder<T> {
      * @throws UnsupportedPathExpression if any search path or the paths combined, are not supported.
      */
     public PathExtractor<T> buildStrict() {
+        return buildStrict(false);
+    }
+
+    /**
+     * Instantiate a "strict" path extractor, which also enforces type expectations.
+     * <br>
+     * Paths that attempt to find named children are only valid on Structs or untyped null.
+     * Paths that attempt to find indexed (or wildcard) children are only valid on containers or untyped null.
+     * For backwards compatibility that includes Structs, though they are defined as unordered per the Ion Datamodel.
+     * <br>
+     * The type check is performed _after_ any callbacks registered for the current path and
+     * _before_ any child matches are attempted.
+     */
+    public PathExtractor<T> buildStrict(final boolean strictTyping) {
         return FsmPathExtractor.create(searchPaths,
+                strictTyping,
                 new PathExtractorConfig(matchRelativePaths, matchCaseInsensitive, matchFieldsCaseInsensitive));
     }
 
