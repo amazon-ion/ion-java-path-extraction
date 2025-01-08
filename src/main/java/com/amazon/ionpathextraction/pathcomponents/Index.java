@@ -41,6 +41,10 @@ public final class Index extends PathComponent {
         this.ordinal = ordinal;
     }
 
+    public Index(final int ordinal) {
+        this(ordinal, EMPTY_STRING_ARRAY);
+    }
+
     public Integer getOrdinal() {
         return ordinal;
     }

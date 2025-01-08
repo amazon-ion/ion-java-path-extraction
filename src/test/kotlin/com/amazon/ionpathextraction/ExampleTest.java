@@ -17,6 +17,10 @@ import static org.junit.Assert.assertEquals;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ion.system.IonReaderBuilder;
+import com.amazon.ionpathextraction.pathcomponents.Index;
+import com.amazon.ionpathextraction.pathcomponents.PathComponent;
+import com.amazon.ionpathextraction.pathcomponents.Text;
+import com.amazon.ionpathextraction.pathcomponents.Wildcard;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -109,5 +113,28 @@ public class ExampleTest {
         pathExtractor.match(ionReader, list);
 
         assertEquals("[1, 2, 20]", list.toString());
+    }
+
+    @Test
+    public void programmaticExample() {
+
+        final BiFunction<IonReader, StringBuilder, Integer> callback = (ionReader, stringBuilder) -> {
+            stringBuilder.append(ionReader.stringValue());
+            return 0;
+        };
+
+        final List<PathComponent> steps = new ArrayList<>();
+        steps.add(new Wildcard());
+        steps.add(new Text("foo"));
+        steps.add(new Index(0));
+        final PathExtractor<StringBuilder> extractor = PathExtractorBuilder.<StringBuilder>standard()
+                .withSearchPath(steps, callback)
+                .build();
+
+        final IonReader ionReader = IonReaderBuilder.standard().build("[{foo: [bar]}]");
+        final StringBuilder stringBuilder = new StringBuilder();
+        extractor.match(ionReader, stringBuilder);
+
+        assertEquals("bar", stringBuilder.toString());
     }
 }

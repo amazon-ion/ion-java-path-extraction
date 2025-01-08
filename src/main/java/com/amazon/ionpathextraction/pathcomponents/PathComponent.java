@@ -29,10 +29,12 @@ import com.amazon.ionpathextraction.internal.MatchContext;
  */
 public abstract class PathComponent {
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     protected final Annotations annotations;
 
     PathComponent(final Annotations annotations) {
-        checkArgument(annotations != null, "fieldName cannot be null");
+        checkArgument(annotations != null, "annotations cannot be null");
 
         this.annotations = annotations;
     }
