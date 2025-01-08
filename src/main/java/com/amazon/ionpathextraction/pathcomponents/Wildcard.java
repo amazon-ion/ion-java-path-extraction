@@ -39,6 +39,10 @@ public final class Wildcard extends PathComponent {
         super(annotations);
     }
 
+    public Wildcard() {
+        this(Annotations.EMPTY);
+    }
+
     @Override
     public boolean innerMatches(final MatchContext context) {
         return true;

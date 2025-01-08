@@ -46,6 +46,10 @@ public final class Text extends PathComponent {
         this.fieldName = fieldName;
     }
 
+    public Text(final String fieldName) {
+        this(fieldName, EMPTY_STRING_ARRAY);
+    }
+
     public String getFieldName() {
         return fieldName;
     }

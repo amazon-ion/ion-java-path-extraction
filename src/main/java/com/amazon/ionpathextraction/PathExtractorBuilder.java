@@ -14,6 +14,7 @@
 package com.amazon.ionpathextraction;
 
 import static com.amazon.ionpathextraction.internal.Preconditions.checkArgument;
+import static com.amazon.ionpathextraction.pathcomponents.PathComponent.EMPTY_STRING_ARRAY;
 
 import com.amazon.ion.IonReader;
 import com.amazon.ionpathextraction.internal.Annotations;
@@ -264,5 +265,15 @@ public final class PathExtractorBuilder<T> {
         searchPaths.add(new SearchPath<>(pathComponents, callback, new Annotations(annotations)));
 
         return this;
+    }
+
+    /**
+     * Add a search path by its components, with no annotations matching on the top-level-values.
+     * <br>
+     * @see PathExtractorBuilder#withSearchPath(List, BiFunction, String[])
+     */
+    public PathExtractorBuilder<T> withSearchPath(final List<PathComponent> pathComponents,
+                                                  final BiFunction<IonReader, T, Integer> callback) {
+        return withSearchPath(pathComponents, callback, EMPTY_STRING_ARRAY);
     }
 }
