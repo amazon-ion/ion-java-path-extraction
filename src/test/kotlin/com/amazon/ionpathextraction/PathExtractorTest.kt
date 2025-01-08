@@ -33,7 +33,7 @@ import kotlin.test.assertTrue
 
 abstract class PathExtractorTest {
     companion object {
-        private val ION = IonSystemBuilder.standard().build()
+        val ION: IonSystem = IonSystemBuilder.standard().build()
 
         data class TestCase(val searchPaths: List<String>,
                             val data: String,

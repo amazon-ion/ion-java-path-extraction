@@ -27,11 +27,32 @@ abstract class FsmMatcher<T> {
      */
     BiFunction<IonReader, T, Integer> callback;
 
+    enum Transitionable {
+        TERMINAL(false, false),
+        POSSIBLE(false, true),
+        MISTYPED(true, false);
+
+        final boolean invalid;
+        final boolean possible;
+
+        Transitionable(final boolean invalid, final boolean possible) {
+            this.invalid = invalid;
+            this.possible = possible;
+        }
+    }
+
     /**
-     * Indicates if there _may_ be transitions to child matchers from the given IonType.
+     * Indicates if there _may_ be transitions to child matchers from the given IonType,
+     * or if the given IonType is mistyped for the expected transitions.
      */
-    boolean transitionsFrom(final IonType ionType) {
-        return IonType.isContainer(ionType);
+    Transitionable transitionsFrom(final IonType ionType) {
+        if (IonType.isContainer(ionType)) {
+            return Transitionable.POSSIBLE;
+        }
+        if (ionType == IonType.NULL) {
+            return Transitionable.TERMINAL;
+        }
+        return Transitionable.MISTYPED;
     }
 
     /**
